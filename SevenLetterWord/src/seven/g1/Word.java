@@ -4,6 +4,7 @@ public class Word {
 	
 	private String word;
 	private int length;
+	//countkeep implementation: the value is the frequency of the letter in the word, and the index is the letter ex A is 0
 	private int[] countKeep= new int[26];
 	
 	public Word(String s){
