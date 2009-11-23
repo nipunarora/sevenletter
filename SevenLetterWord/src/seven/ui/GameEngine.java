@@ -8,7 +8,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import sun.java2d.ScreenUpdateManager;
 
 /*
  * To change this template, choose Tools | Templates
@@ -363,7 +362,7 @@ public class GameEngine extends javax.swing.JFrame {
         //PlayerListbox.setModel(new DefaultListModel());
         DefaultListModel dlm = (DefaultListModel) PlayerListbox.getModel();
         dlm.add(dlm.getSize(),(Object)player);
-        
+
 
     }//GEN-LAST:event_AddPlayerButtonActionPerformed
 
@@ -379,7 +378,7 @@ public class GameEngine extends javax.swing.JFrame {
              {
                  // Do nothing!
              }
-             
+
          }while(PlayerListbox.getSelectedIndices().length != 0);
 
     }//GEN-LAST:event_jButton1ActionPerformed
@@ -577,7 +576,7 @@ public class GameEngine extends javax.swing.JFrame {
 
         String bidletter = "";
         DefaultTableModel dtm = (DefaultTableModel)ScreenTable.getModel();
-        
+
         while(dtm.getRowCount() != 0)
         {
             dtm.removeRow(0);
@@ -627,13 +626,13 @@ public class GameEngine extends javax.swing.JFrame {
             if(gameconfig.wordbag.size() !=0)
             {
                 wbstring = gameconfig.wordbag.get(loop);
-                
+
             }
 
             if(gameconfig.lasPoints.size() != 0)
             {
                 points = gameconfig.lasPoints.get(loop).toString();
-                
+
             }
             Object[] UIData = new Object[]{playername,score + "   ",secretLetters,openLetters,bidvalue+ "   ",wordReturned,points,wbstring};
             dtm.addRow(UIData);
