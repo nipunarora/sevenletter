@@ -1,4 +1,4 @@
-package seven.g0;
+package seven.g1;
 
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -21,9 +21,9 @@ import seven.ui.SecretState;
  *
  * @author Satyajeet
  */
-public class G1 implements Player{
+public class G1Player implements Player{
 
-	HashSet<String> wordlist;
+	HashSet<Word> wordlist;
 	
     public void Register() {
         //throw new UnsupportedOperationException("Not supported yet.");
@@ -48,7 +48,8 @@ public class G1 implements Player{
             while((nextLine = csvreader.readNext()) != null)
             {
                 String word = nextLine[1];
-                wordlist.add(word);
+                Word tempword= new Word(word);
+                wordlist.add(tempword);
             }
 
         }
