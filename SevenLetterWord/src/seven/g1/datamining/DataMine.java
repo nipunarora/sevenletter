@@ -16,7 +16,6 @@ import org.apache.log4j.Logger;
 
 public abstract class DataMine {
 
-	protected static final File DATA_ROOT = new File("/import/html/6111/20091/Proj3-Data");
 	protected String name;
 	protected Logger logger;
 	protected Set<ItemSet> singletonSets = new TreeSet<ItemSet>();

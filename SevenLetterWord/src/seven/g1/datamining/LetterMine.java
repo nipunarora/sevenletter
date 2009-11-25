@@ -9,22 +9,18 @@ import java.util.*;
 public class LetterMine extends DataMine {
 
 	public class LetterSet extends ItemSetInt {
-		private boolean singleletter = false;
 		public LetterSet(String[] items, Integer[] docids) {
 			super(items, docids);
 		}
 		public LetterSet(char c, Integer[] docids) {
 			super(new String[] { Character.toString(c)}, docids);
-			singleletter = true;
 		}
 		/* (non-Javadoc)
 		 * @see seven.g1.datamining.DataMine.ItemSetInt#intersect(seven.g1.datamining.DataMine.ItemSet, boolean)
 		 */
 		@Override
 		public ItemSet intersect(ItemSet other_in, boolean finalRound) {
-			// TODO Auto-generated method stub
 			if (this == other_in) {
-				//if (!singleletter) return null; // gaaaah
 				logger.trace("In special intersection case");
 				String items[] = getItems();
 				int repeats = 1;
@@ -54,7 +50,6 @@ public class LetterMine extends DataMine {
 				}
 				String[] newterms = intersectionTerms(other_in);
 				LetterSet ans = new LetterSet(newterms,intersected.toArray(new Integer[0]));
-				ans.singleletter = true;
 				return ans;
 			} else {
 				ItemSetInt tmp = (ItemSetInt) super.intersect(other_in, finalRound);
@@ -67,26 +62,19 @@ public class LetterMine extends DataMine {
 
 	}
 
-	//ArrayList<ArrayList<Integer>> letterIndex = new ArrayList<ArrayList<Integer>>(26);
 	SortedMap<Character,ArrayList<Integer>> letterIndex = new TreeMap<Character,ArrayList<Integer>>();
 	private String[] wordIndex;
-	private String wordListFile;
 
 	public LetterMine(String filename) {
 		super(filename);
-		wordListFile = filename;
-
 		for (char c = 'A'; c <= 'Z'; c++) {
 			letterIndex.put(c, new ArrayList<Integer>());
 		}
-
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void buildIndex() {
-		// TODO Auto-generated method stub
-		File wordFile = new File(wordListFile);
+		File wordFile = new File(this.name);
 		FileReader r = null;
 		ArrayList<String> wordArrayList = new ArrayList<String>(55000);
 		try {
@@ -99,13 +87,12 @@ public class LetterMine extends DataMine {
 				wordArrayList.add(line);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.fatal("Error reading word list",e);
+			throw new RuntimeException(e);
 		}
 		wordIndex = wordArrayList.toArray(new String[0]);
 		this.totalDocs = wordIndex.length;
 		for (int wordID = 0; wordID < wordIndex.length; wordID++) {
-			//seven.g1.Word w = new seven.g1.Word(wordIndex[wordID]);
 			String thisword = wordIndex[wordID];
 			Set<Character> chars = new HashSet<Character>();
 			for (int j = 0; j < thisword.length(); j++) {
@@ -126,18 +113,18 @@ public class LetterMine extends DataMine {
 
 	@Override
 	public void findCommon(int i) {
-		throw new IllegalArgumentException("findCommon is not currently implemented");
+		throw new UnsupportedOperationException("findCommon is not currently implemented");
 	}
 
 	@Override
 	public double findSupport(String[] terms) {
-		throw new IllegalArgumentException("findSupport is not currently implemented");
+		throw new UnsupportedOperationException("findSupport is not currently implemented");
 	}
 
 	@Override
 	protected Iterator<String> getTerms() {
 		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("getTerms is not implemented")
 	}
 
 }
