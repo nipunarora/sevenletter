@@ -124,7 +124,7 @@ public class LetterMine extends DataMine {
 	@Override
 	protected Iterator<String> getTerms() {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("getTerms is not implemented")
+		throw new UnsupportedOperationException("getTerms is not implemented");
 	}
 
 }
