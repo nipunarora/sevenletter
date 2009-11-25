@@ -174,7 +174,7 @@ public abstract class DataMine {
 				if (k > 0) baseKey.append(' ');
 				baseKey.append(oldterms[k]);
 			}
-			for (int k = j + 1; k < indexLookup.get(baseKey.toString()); k++) {
+			for (int k = j; k < indexLookup.get(baseKey.toString()); k++) {
 				ItemSet singleton = prevRound[k]; // XXX no longer a singleton
 				//String newTerm = singleton.getKey();
 				String newTerm = singleton.getItems()[roundnum - 2];
