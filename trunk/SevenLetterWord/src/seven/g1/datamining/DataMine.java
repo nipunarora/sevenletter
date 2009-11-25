@@ -23,7 +23,7 @@ public abstract class DataMine {
 	protected ItemSet[] foundSets = null;
 	protected double maxSupport = 1, minSupport = 0;
 	int minDocs = -1;
-	protected final int max_itemset_size = 3;
+	protected final int max_itemset_size = 7;
 	protected int totalDocs;
 	protected double minValue;
 	/* internals for a priori. */
