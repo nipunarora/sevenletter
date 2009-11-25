@@ -24,12 +24,12 @@ import seven.ui.SecretState;
 public class G1Player implements Player{
 
 	HashSet<Word> wordlist;
-	
+
     public void Register() {
         //throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public int Bid(Letter bidLetter, ArrayList<PlayerBids> PlayerBidList, int total_rounds,ArrayList<String> PlayerList, SecretState secretstate) {
+    public int Bid(Letter bidLetter, ArrayList<PlayerBids> PlayerBidList,int total_rounds, ArrayList<String> PlayerList, SecretState secretstate, int PlayerID) { //(Letter bidLetter, ArrayList<PlayerBids> PlayerBidList, int total_rounds,ArrayList<String> PlayerList, SecretState secretstate) {
 
         return 0;
     }
@@ -60,6 +60,6 @@ public class G1Player implements Player{
         }
 
     }
-   
+
 
 }
