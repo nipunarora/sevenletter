@@ -17,6 +17,7 @@ public class ScrabbleMiner {
 		mine = new LetterMine("super-small-wordlist.txt");
 		mine.buildIndex();
 		DataMine.ItemSet[] answer = mine.aPriori(0.000001);
+		
 		System.out.println("alive and well: " + answer.length + " itemsets total");
 	}
 }

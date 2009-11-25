@@ -74,6 +74,10 @@ public abstract class DataMine {
 	 */
 	public abstract void findCommon(int i);
 
+	public ItemSet getCachedItemSet(String[] terms) {
+		String lookup = makeKey(terms);
+		return itemCache.get(lookup);
+	}
 
 	/**
 	 * Run the <i>a priori</i> algorithm on the terms in this data mine.  <b>Must be called after buildIndex().</b>
@@ -248,6 +252,11 @@ public abstract class DataMine {
 		return t.toArray(new ItemSet[0]);
 	}
 
+	/**
+	 * Turn an unsorted array of strings into a canonical key.
+	 * @param subkeys
+	 * @return
+	 */
 	static protected String makeKey(String[] subkeys) {
 		if (1 == subkeys.length) return subkeys[0]; // common case short-circuit
 		String tmp[] = subkeys.clone();
@@ -404,6 +413,7 @@ public abstract class DataMine {
 
 		public double getSupport() { return support; }
 		public String[] getItems() { return items; }
+		public int getSize()       { return items.length; }
 		protected String getKey() {
 			if (null == concatenated) {
 				concatenated = makeKey(this.items);
