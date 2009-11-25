@@ -63,6 +63,7 @@ public class LetterMine extends DataMine {
 	}
 
 	SortedMap<Character,ArrayList<Integer>> letterIndex = new TreeMap<Character,ArrayList<Integer>>();
+
 	private String[] wordIndex;
 
 	public LetterMine(String filename) {
@@ -70,6 +71,10 @@ public class LetterMine extends DataMine {
 		for (char c = 'A'; c <= 'Z'; c++) {
 			letterIndex.put(c, new ArrayList<Integer>());
 		}
+	}
+
+	public String getWord(int wordID) {
+		return wordIndex[wordID];
 	}
 
 	@Override
