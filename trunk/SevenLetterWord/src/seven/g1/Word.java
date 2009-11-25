@@ -2,17 +2,18 @@ package seven.g1;
 
 public class Word {
 	
-	private String word;
-	private int length;
+	public String word;
+	public int length;
 	//countkeep implementation: the value is the frequency of the letter in the word, and the index is the letter ex A is 0
-	private int[] countKeep= new int[26];
+	public int[] countKeep= new int[26];
 	
 	public Word(String s){
 		word=s;
 		length=s.length();
 		int index;
-		for(int i=0; i<s.length();i++){
-			index= Integer.valueOf(s.charAt(i))-Integer.valueOf('A');
+		for(int i=1; i<s.length();i++){
+			index= Integer.valueOf(s.charAt(i));
+			index=index-Integer.valueOf('A');
 			countKeep[index]++;
 		}
 	}
@@ -28,5 +29,9 @@ public class Word {
 		}
 		return true;
 		
+	}
+	
+	public String getWord(){
+		return this.word;
 	}
 }
