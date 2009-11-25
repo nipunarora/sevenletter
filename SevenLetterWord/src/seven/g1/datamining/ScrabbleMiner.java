@@ -6,7 +6,7 @@ import org.apache.log4j.Logger;
 public class ScrabbleMiner {
 	static {
 		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(org.apache.log4j.Level.TRACE);
+		Logger.getRootLogger().setLevel(org.apache.log4j.Level.DEBUG);
 	}
 	/**
 	 * @param args
