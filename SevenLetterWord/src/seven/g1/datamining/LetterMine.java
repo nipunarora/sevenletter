@@ -9,11 +9,47 @@ import java.util.*;
 public class LetterMine extends DataMine {
 
 	public class LetterSet extends ItemSetInt {
+		private boolean singleletter = false;
 		public LetterSet(String[] items, Integer[] docids) {
 			super(items, docids);
 		}
 		public LetterSet(char c, Integer[] docids) {
 			super(new String[] { Character.toString(c)}, docids);
+			singleletter = true;
+		}
+		/* (non-Javadoc)
+		 * @see seven.g1.datamining.DataMine.ItemSetInt#intersect(seven.g1.datamining.DataMine.ItemSet, boolean)
+		 */
+		@Override
+		public ItemSet intersect(ItemSet other_in, boolean finalRound) {
+			// TODO Auto-generated method stub
+			if (this == other_in && singleletter) {
+				logger.debug("In special intersection case");
+				String items[] = getItems();
+				int repeats = items.length + 1;
+				char basechar = items[0].charAt(0);
+				logger.debug("Looking for " + repeats + " copies of " + basechar);
+				ArrayList<Integer> intersected = new ArrayList<Integer>();
+				for (int wordID : transList) {
+					String word = LetterMine.this.wordIndex[wordID];
+					int count = 0;
+					for (int i = 0; i < word.length(); i++) {
+						if (word.charAt(i) == basechar) {
+							if (++count >= repeats) {
+								intersected.add(wordID);
+								break;
+							}
+						}
+					}
+				}
+				String[] newterms = new String[repeats];
+				for (int i = 0; i < newterms.length; i++) newterms[i] = items[0];
+				LetterSet ans = new LetterSet(newterms,intersected.toArray(new Integer[0]));
+				ans.singleletter = true;
+				return ans;
+			} else {
+				return super.intersect(other_in, finalRound);
+			}
 		}
 
 	}
