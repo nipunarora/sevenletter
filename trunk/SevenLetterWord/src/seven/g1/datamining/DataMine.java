@@ -177,7 +177,11 @@ public abstract class DataMine {
 			for (int k = j; k < indexLookup.get(baseKey.toString()); k++) {
 				ItemSet singleton = prevRound[k]; // XXX no longer a singleton
 				//String newTerm = singleton.getKey();
-				String newTerm = singleton.getItems()[roundnum - 2];
+				String tmpItems[] = singleton.getItems();
+				if (tmpItems.length <= roundnum - 2) {
+					logger.fatal("About to blow up on " + singleton.getKey());
+				}
+				String newTerm = tmpItems[roundnum - 2];
 				if (0 == (++this_set_number % debug_step)) {
 					Object a[] = {
 							this_set_number,
@@ -214,6 +218,9 @@ public abstract class DataMine {
 				ItemSet combined = baseSet.intersect(singleton, isFinal);
 				if (null != combined && combined.getSupport() >= minsupport) {
 					itemCache.put(combined.getKey(), combined);
+					if (roundnum != combined.getItems().length) {
+						logger.error("Somehow got " + combined.getKey() + " from "  + baseSet.getKey() + " and " + singleton.getKey());
+					}
 					thisRound.add(combined);
 				}
 			}

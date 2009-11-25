@@ -23,12 +23,22 @@ public class LetterMine extends DataMine {
 		@Override
 		public ItemSet intersect(ItemSet other_in, boolean finalRound) {
 			// TODO Auto-generated method stub
-			if (this == other_in && singleletter) {
-				logger.debug("In special intersection case");
+			if (this == other_in) {
+				//if (!singleletter) return null; // gaaaah
+				logger.trace("In special intersection case");
 				String items[] = getItems();
-				int repeats = items.length + 1;
-				char basechar = items[0].charAt(0);
-				logger.debug("Looking for " + repeats + " copies of " + basechar);
+				int repeats = 1;
+				String repeated = items[items.length - 1];
+				char basechar = repeated.charAt(0);
+				for (String item : items) {
+					if (item.equals(repeated)) repeats++;
+				}
+				if (logger.isTraceEnabled()) {
+					logger.trace(String.format(
+						"Subsetting %s: looking for %d copies of %s",
+						new Object[]{ Arrays.deepToString(items), repeats, repeated }
+					));
+				}
 				ArrayList<Integer> intersected = new ArrayList<Integer>();
 				for (int wordID : transList) {
 					String word = LetterMine.this.wordIndex[wordID];
@@ -42,13 +52,16 @@ public class LetterMine extends DataMine {
 						}
 					}
 				}
-				String[] newterms = new String[repeats];
-				for (int i = 0; i < newterms.length; i++) newterms[i] = items[0];
+				String[] newterms = intersectionTerms(other_in);
 				LetterSet ans = new LetterSet(newterms,intersected.toArray(new Integer[0]));
 				ans.singleletter = true;
 				return ans;
 			} else {
-				return super.intersect(other_in, finalRound);
+				ItemSetInt tmp = (ItemSetInt) super.intersect(other_in, finalRound);
+				if (null == tmp) return null;
+				Integer stupidcopy[] = new Integer[tmp.transList.length];
+				for (int i = 0; i < stupidcopy.length;i++) stupidcopy[i] = tmp.transList[i];
+				return new LetterSet(tmp.getItems(),stupidcopy);
 			}
 		}
 
