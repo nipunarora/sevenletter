@@ -31,6 +31,7 @@ public class G1Player implements Player{
 	static {
 		BasicConfigurator.configure();
 		Logger.getRootLogger().setLevel(org.apache.log4j.Level.INFO);
+		Logger.getLogger(G1Player.class).setLevel(org.apache.log4j.Level.TRACE);
 	}
 
 	LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
@@ -46,6 +47,8 @@ public class G1Player implements Player{
 	SecretState refstate;
 	Boolean first =true;
 	ArrayList<PlayerBids> RefList= new ArrayList<PlayerBids>();
+
+	int player_id = -1;
 	int current_auction = 0;
 	int total_auctions = 0;
 
@@ -68,6 +71,7 @@ public class G1Player implements Player{
 
 		//initialize dictionary in first move
 		if(first){
+			player_id = PlayerID;
 			openletters.addAll(secretstate.getSecretLetters());
 			total_auctions = (7 - openletters.size()) * PlayerList.size();
 			l.debug("Seven letter size: " + sevenletterlist.size());
@@ -81,12 +85,7 @@ public class G1Player implements Player{
     	++current_auction;
     	l.debug("On bidding round " + current_auction + " of " + total_auctions);
 
-    	if(!PlayerBidList.isEmpty()){
-    	PlayerBids LastBid= RefList.get(RefList.size()-1);
-		if(PlayerID == LastBid.getWinnerID()) {
-		openletters.add(LastBid.getTargetLetter());
-		}
-    	}
+    	checkBidSuccess(PlayerBidList);
 
     	if(openletters.size()<3){
     		return 0;
@@ -120,14 +119,26 @@ public class G1Player implements Player{
         return 0;
     }
 
+	/**
+	 * @param bidList
+	 */
+	private void checkBidSuccess(ArrayList<PlayerBids> bidList) {
+		if(!bidList.isEmpty()){
+			PlayerBids LastBid= bidList.get(bidList.size()-1);
+			if(player_id == LastBid.getWinnerID()) {
+				Letter lastletter = LastBid.getTargetLetter();
+				l.debug("We acquired letter " + lastletter.getAlphabet()
+						+ " for " + LastBid.getWinAmmount());
+				openletters.add(LastBid.getTargetLetter());
+			}
+    	}
+	}
+
     public String returnWord() {
     	ArrayList<String> possiblities= new ArrayList<String>();
 
-
-    	PlayerBids LastBid= RefList.get(RefList.size()-1);
-		if(LastBid.getWonBy().equals("seven.g1.G1Player")){
-		openletters.add(LastBid.getTargetLetter());
-		}
+    	l.debug("checking bid for final round: " + RefList.size());
+    	checkBidSuccess(RefList);
 
     	String s= new String();
     	char[] c= new char[openletters.size()];
@@ -137,12 +148,12 @@ public class G1Player implements Player{
 
     	s= String.valueOf(c);
     	Word open= new Word(s);
-    	System.out.println("Open Letters are:" + s);
+    	l.info("Open Letters are: [" + s + "]");
 
 
-    	for (int i=0;i<wordlist.size();i++){
-    		if(open.issubsetof(wordlist.get(i))){
-    			possiblities.add(wordlist.get(i).getWord());
+    	for (Word candidate : wordlist) {
+    		if(open.issubsetof(candidate)){
+    			possiblities.add(candidate.getWord());
     		}
     	}
     	int max=0;
@@ -160,9 +171,10 @@ public class G1Player implements Player{
     		openletters.clear();
     		RefList.clear();
     		first=true;
-    		return possiblities.get(maxindex).trim();
-    	}else
-    		return " ";
+    		return possiblities.get(maxindex);
+    	} else {
+    		return "";
+    	}
     }
 
     public  void initDict()
