@@ -59,6 +59,13 @@ public class LetterMine extends DataMine {
 				return new LetterSet(tmp.getItems(),stupidcopy);
 			}
 		}
+		public String[] getWords() {
+			String[] words = new String[this.transList.length];
+			for (int i = 0; i < transList.length; i++) {
+				words[i] = wordIndex[transList[i]];
+			}
+			return words;
+		}
 
 	}
 
