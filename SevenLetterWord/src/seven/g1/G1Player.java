@@ -1,10 +1,7 @@
 package seven.g1;
 
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Random;
+import java.util.*;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
@@ -16,6 +13,7 @@ import seven.ui.Letter;
 import seven.ui.Player;
 import seven.ui.PlayerBids;
 import seven.ui.SecretState;
+import seven.ui.Scrabble;
 
 /*
  * To change this template, choose Tools | Templates
@@ -72,11 +70,15 @@ public class G1Player implements Player{
 		//initialize dictionary in first move
 		if(first){
 			player_id = PlayerID;
+			current_auction = 0;
+			openletters.clear();
 			openletters.addAll(secretstate.getSecretLetters());
 			total_auctions = (7 - openletters.size()) * PlayerList.size();
 			l.debug("Seven letter size: " + sevenletterlist.size());
 			l.info("Total bidding rounds: " +  total_auctions);
 			first = false;
+		} else {
+			checkBidSuccess(PlayerBidList);
 		}
 
 
@@ -85,7 +87,6 @@ public class G1Player implements Player{
     	++current_auction;
     	l.debug("On bidding round " + current_auction + " of " + total_auctions);
 
-    	checkBidSuccess(PlayerBidList);
 
     	if(openletters.size()<3){
     		return 0;
@@ -156,25 +157,22 @@ public class G1Player implements Player{
     			possiblities.add(candidate.getWord());
     		}
     	}
-    	int max=0;
-    	int maxindex=0;
-    	for(int i=0;i<possiblities.size();i++){
-    		if(max<possiblities.get(i).length()){
-    			max=possiblities.get(i).length();
-    			maxindex=i;
+
+    	int bestscore = 0;
+    	String bestword = "";
+    	for (String possible : possiblities) {
+    		int score = Scrabble.getWordScore(possible);
+    		if (score > bestscore) {
+    			bestscore = score;
+    			bestword = possible;
     		}
     	}
 
-        //throw new UnsupportedOperationException("Not supported yet.");
-    	if(possiblities.size()>0){
-    		l.info(possiblities.get(maxindex));
-    		openletters.clear();
-    		RefList.clear();
-    		first=true;
-    		return possiblities.get(maxindex);
-    	} else {
-    		return "";
-    	}
+
+    	l.info(bestword);
+        // tell "bid" that we are about to begin a new round
+    	first = true;
+    	return bestword;
     }
 
     public  void initDict()

@@ -15,26 +15,23 @@ import java.util.Random;
  */
 public class Scrabble {
 
-     Dictionary sowpods;
+     static Dictionary sowpods;
      ArrayList<Letter> wordbag;
+     static {
+    	 initDict();
+     }
      public Scrabble()
      {
-
-         initDict();
          initBag();
      }
 
-     public int getWordScore(String word)
+     public static int getWordScore(String word)
      {
          int score = -1;
 
-         if(sowpods.wordlist.get(word) == null)
+         if(sowpods.wordlist.containsKey(word))
          {
-             score = -1;
-         }
-         else
-         {
-             if(sowpods.wordlist.get(word) == true)
+             if(sowpods.wordlist.get(word))
              {
                  // Lets compute the score.
                  score = 0;
@@ -49,7 +46,7 @@ public class Scrabble {
          return score;
      }
 
-     public int letterScore(Character letter)
+     public static int letterScore(Character letter)
      {
          int score = 0;
          switch(letter)
@@ -210,9 +207,10 @@ public class Scrabble {
 
 
      }
-   
-    public  void initDict()
+
+    private static void initDict()
     {
+    	if (null != sowpods) return;
         sowpods = new Dictionary();
         try{
             CSVReader csvreader = new CSVReader(new FileReader("sowpods.txt"));
