@@ -178,14 +178,9 @@ public class G1Player implements Player{
     public  void initDict()
     {
         try{
-            CSVReader csvreader = new CSVReader(new FileReader("FilteredWords.txt"));
-            l.trace("reached 1");
-            String[] nextLine;
-
-            while((nextLine = csvreader.readNext()) != null)
-            {
-
-                String word = nextLine[2].trim();
+        	Iterator<String> words = mine.getWordIterator();
+        	while (words.hasNext()) {
+                String word = words.next();
                 l.trace(word);
                 Word tempword= new Word(word);
                // System.out.println("reached 2");
@@ -193,7 +188,6 @@ public class G1Player implements Player{
                 	sevenletterlist.add(tempword);
                 }
                 wordlist.add(tempword);
-               // System.out.println("addedword "+ word);
             }
 
         }

@@ -84,6 +84,10 @@ public class LetterMine extends DataMine {
 		return wordIndex[wordID];
 	}
 
+	public Iterator<String> getWordIterator() {
+		return Arrays.asList(wordIndex).iterator();
+	}
+
 	@Override
 	public void buildIndex() {
 		File wordFile = new File(this.name);
