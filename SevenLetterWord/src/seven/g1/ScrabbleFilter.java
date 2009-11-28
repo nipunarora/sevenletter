@@ -7,18 +7,18 @@ import java.io.FileReader;
 import seven.ui.CSVReader;
 
 /**
- * A class to filter out impossible scrabble words 
+ * A class to filter out impossible scrabble words
  * @author Nipun Arora
  *
  */
 public class ScrabbleFilter {
 
 	public static void main(String args[]){
-		
-		Word Scrabble= new Word("EEEEEEEEEEEEAAAAAAAAAIIIIIIIIIOOOOOOOONNNNNNRRRRRRTTTTTTLLLLSSSSUUUUDDDDGGGBBCCMMPPFFHHVVWWYYKJXQZ");
+
+		Word Scrabble= new Word(G1Player.SCRABBLE_LETTERS_EN_US);
 		int counter =0;
 		 try{
-			 	
+
 			 	File file = new File("FilteredWords.txt");
 			 	BufferedWriter output = new BufferedWriter(new FileWriter(file));
 	            CSVReader csvreader = new CSVReader(new FileReader("sowpods.txt"));
@@ -29,7 +29,7 @@ public class ScrabbleFilter {
 	                String word = nextLine[1];
 	                Word tempword= new Word(word);
 	                if(Scrabble.issubsetof(tempword)&&word.length()<=7){
-	                	counter++;           	
+	                	counter++;
 	                	output.write(counter+ ", " + nextLine[0]+ ", " + nextLine[1]);
 	                	output.newLine();
 	                }
