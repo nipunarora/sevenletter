@@ -67,6 +67,10 @@ public class LetterMine extends DataMine {
 			return words;
 		}
 
+		public int[] getTransactions() {
+			return Arrays.copyOf(transList, transList.length);
+		}
+
 	}
 
 	SortedMap<Character,ArrayList<Integer>> letterIndex = new TreeMap<Character,ArrayList<Integer>>();

@@ -1,6 +1,5 @@
 package seven.g1;
 
-import java.io.FileReader;
 import java.util.*;
 
 import org.apache.log4j.BasicConfigurator;
@@ -8,7 +7,7 @@ import org.apache.log4j.Logger;
 
 import seven.g1.datamining.DataMine;
 import seven.g1.datamining.LetterMine;
-import seven.ui.CSVReader;
+import seven.g1.datamining.LetterMine.LetterSet;
 import seven.ui.Letter;
 import seven.ui.Player;
 import seven.ui.PlayerBids;
@@ -26,6 +25,10 @@ import seven.ui.Scrabble;
  */
 public class G1Player implements Player{
 
+	public static final String SCRABBLE_LETTERS_EN_US =
+		"EEEEEEEEEEEEAAAAAAAAAIIIIIIIIIOOOOOOOONNNNNNRRRRRR" +
+		"TTTTTTLLLLSSSSUUUUDDDDGGGBBCCMMPPFFHHVVWWYYKJXQZ";
+
 	static {
 		BasicConfigurator.configure();
 		Logger.getRootLogger().setLevel(org.apache.log4j.Level.INFO);
@@ -35,6 +38,8 @@ public class G1Player implements Player{
 	LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
 	DataMine.ItemSet[] allSets;
 
+	CountMap<Character> letterBag;
+	CountMap<Character> letterRack;
 
 	ArrayList<Letter> openletters= new ArrayList<Letter>();
 
@@ -51,12 +56,23 @@ public class G1Player implements Player{
 	int total_auctions = 0;
 
 	private Logger l = Logger.getLogger(this.getClass());
+	private boolean[] reachable;
 
     public G1Player() {
 		super();
 		mine.buildIndex();
 		allSets = mine.aPriori(0.000001);
 		initDict();
+    	reachable = new boolean[wordlist.size()];
+	}
+
+	private CountMap<Character> newBag() {
+		CountMap<Character> bag = new CountMap<Character>();
+		for (int i = 0; i < SCRABBLE_LETTERS_EN_US.length(); i++) {
+			char c = SCRABBLE_LETTERS_EN_US.charAt(i);
+			bag.increment(c);
+		}
+		return bag;
 	}
 
 	public void Register() {
@@ -72,8 +88,14 @@ public class G1Player implements Player{
 			player_id = PlayerID;
 			current_auction = 0;
 			openletters.clear();
+			letterBag = newBag();
+			letterRack = new CountMap<Character>();
 			openletters.addAll(secretstate.getSecretLetters());
 			total_auctions = (7 - openletters.size()) * PlayerList.size();
+			for (Letter l : openletters) {
+				won(l);
+			}
+        	Arrays.fill(reachable, true);
 			l.debug("Seven letter size: " + sevenletterlist.size());
 			l.info("Total bidding rounds: " +  total_auctions);
 			first = false;
@@ -120,17 +142,47 @@ public class G1Player implements Player{
         return 0;
     }
 
+	private void won(Letter letterWon) {
+		Character c = letterWon.getAlphabet();
+		assert(0 <= letterBag.decrement(c));
+		assert(0 <= letterRack.increment(c));
+	}
+
+	private void lost(Letter letterLost) {
+		Character c = letterLost.getAlphabet();
+		int prevCount = letterBag.count(c) + letterRack.count(c);
+		letterBag.decrement(c);
+		String[] terms = new String[prevCount];
+		for (int i = 0; i < prevCount; i++) {
+			terms[i] = c.toString();
+		}
+		LetterSet set = (LetterSet) mine.getCachedItemSet(terms);
+		if (null != set) {
+			int wordList[] = set.getTransactions();
+			l.debug(
+					String.format("Marking %d words as unreachable (%d x '%c')",
+						new Object[]{ wordList.length, prevCount , c})
+			);
+			for (int wordID : wordList) {
+				this.reachable[wordID] = false;
+			}
+		}
+	}
+
 	/**
 	 * @param bidList
 	 */
 	private void checkBidSuccess(ArrayList<PlayerBids> bidList) {
 		if(!bidList.isEmpty()){
 			PlayerBids LastBid= bidList.get(bidList.size()-1);
+			Letter lastletter = LastBid.getTargetLetter();
 			if(player_id == LastBid.getWinnerID()) {
-				Letter lastletter = LastBid.getTargetLetter();
+				won(lastletter);
 				l.debug("We acquired letter " + lastletter.getAlphabet()
 						+ " for " + LastBid.getWinAmmount());
 				openletters.add(LastBid.getTargetLetter());
+			} else {
+				lost(lastletter);
 			}
     	}
 	}
