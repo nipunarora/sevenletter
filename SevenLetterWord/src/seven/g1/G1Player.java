@@ -5,47 +5,50 @@ import java.util.*;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
-import seven.g1.datamining.DataMine;
 import seven.g1.datamining.LetterMine;
 import seven.g1.datamining.LetterMine.LetterSet;
 import seven.ui.Letter;
 import seven.ui.Player;
 import seven.ui.PlayerBids;
 import seven.ui.SecretState;
-import seven.ui.Scrabble;
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /**
  *
- * @author Satyajeet
+ * @author Nipun, Ben and Manuel
  */
 public class G1Player implements Player{
 
+
+	/**
+	 * Constant string containing the 98 letters of a  US-English Scrabble set (no blanks)
+	 */
 	public static final String SCRABBLE_LETTERS_EN_US =
 		"EEEEEEEEEEEEAAAAAAAAAIIIIIIIIIOOOOOOOONNNNNNRRRRRR" +
 		"TTTTTTLLLLSSSSUUUUDDDDGGGBBCCMMPPFFHHVVWWYYKJXQZ";
 
+	/*
+	 * Shared precalculated information for all instances of our player
+	 */
+	static final LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
+	static final ArrayList<Word> wordlist = new ArrayList<Word>();
+	static final ArrayList<Word> sevenletterlist = new ArrayList<Word>();
+
 	static {
 		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(org.apache.log4j.Level.INFO);
 		Logger.getLogger(G1Player.class).setLevel(org.apache.log4j.Level.TRACE);
+		mine.buildIndex();
+		mine.aPriori(0.000001);
+		initDict();
 	}
 
-	LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
-	DataMine.ItemSet[] allSets;
+	/*
+	 * Fields specific to individual players:
+	 */
 
 	CountMap<Character> letterBag;
 	CountMap<Character> letterRack;
 
 	ArrayList<Letter> openletters= new ArrayList<Letter>();
-
-
-	ArrayList<Word> wordlist=new ArrayList<Word>();
-	ArrayList<Word> sevenletterlist= new ArrayList<Word>();
 
 	SecretState refstate;
 	Boolean first = true;
@@ -56,14 +59,15 @@ public class G1Player implements Player{
 	int total_auctions = 0;
 
 	private Logger l = Logger.getLogger(this.getClass());
-	private boolean[] reachable;
+	private boolean[] reachable = new boolean[wordlist.size()];
 
+    /**
+     * More or less empty constructor--all of our initialization is now done
+     * in initialization statements or the static initializer block.
+     */
     public G1Player() {
 		super();
-		mine.buildIndex();
-		allSets = mine.aPriori(0.000001);
-		initDict();
-    	reachable = new boolean[wordlist.size()];
+		l.trace("reachable has length " + reachable.length);
 	}
 
 	private CountMap<Character> newBag() {
@@ -233,8 +237,9 @@ public class G1Player implements Player{
     	return bestword;
     }
 
-    public  void initDict()
+    public static void initDict()
     {
+    	Logger l = Logger.getLogger(G1Player.class);
         try{
         	Iterator<String> words = mine.getWordIterator();
         	while (words.hasNext()) {
