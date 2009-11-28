@@ -2,11 +2,14 @@ package seven.g1;
 
 import org.apache.log4j.Logger;
 
+import seven.ui.Scrabble;
+
 public class Word {
 
 	private static final int LETTERS = 26;
 	public String word;
 	public int length;
+	public int score = 0;
 	private Logger l = Logger.getLogger(this.getClass());
 	//countkeep implementation: the value is the frequency of the letter in the word, and the index is the letter ex A is 0
 	public int[] countKeep= new int[LETTERS];
@@ -15,7 +18,9 @@ public class Word {
 		word=s;
 		length=s.length();
 		for(int i = 0; i<s.length();i++){
-			int index= Integer.valueOf(s.charAt(i));
+			char c = s.charAt(i);
+			score += Scrabble.letterScore(c);
+			int index= Integer.valueOf(c);
 			index -= Integer.valueOf('A');
 			countKeep[index]++;
 		}
@@ -29,6 +34,7 @@ public class Word {
 		for (char c = 'A'; c <= 'Z'; c++) {
 			int index= Integer.valueOf(c) - charOffset;
 			for (int i = 0; i < countKeep[index]; i++) {
+				score += Scrabble.letterScore(c);
 				b.append(c);
 				length++;
 			}
