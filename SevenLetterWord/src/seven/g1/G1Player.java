@@ -48,7 +48,7 @@ public class G1Player implements Player{
 	ArrayList<Word> sevenletterlist= new ArrayList<Word>();
 
 	SecretState refstate;
-	Boolean first =true;
+	Boolean first = true;
 	ArrayList<PlayerBids> RefList= new ArrayList<PlayerBids>();
 
 	int player_id = -1;
@@ -203,38 +203,29 @@ public class G1Player implements Player{
 	}
 
     public String returnWord() {
-    	ArrayList<String> possiblities= new ArrayList<String>();
-
     	l.debug("checking bid for final round: " + RefList.size());
     	checkBidSuccess(RefList);
 
-    	String s= new String();
     	char[] c= new char[openletters.size()];
     	for(int i=0; i<openletters.size();i++){
     		 c[i]= openletters.get(i).getAlphabet();
     	}
 
-    	s= String.valueOf(c);
+    	String s = String.valueOf(c);
     	Word open= new Word(s);
     	l.info("Open Letters are: [" + s + "]");
 
-
-    	for (Word candidate : wordlist) {
-    		if(open.issubsetof(candidate)){
-    			possiblities.add(candidate.getWord());
-    		}
-    	}
-
     	int bestscore = 0;
     	String bestword = "";
-    	for (String possible : possiblities) {
-    		int score = Scrabble.getWordScore(possible);
-    		if (score > bestscore) {
-    			bestscore = score;
-    			bestword = possible;
+    	for (Word candidate : wordlist) {
+    		if(open.issubsetof(candidate)){
+    			if (candidate.score > bestscore) {
+    				bestscore = candidate.score;
+    				bestword = candidate.getWord();
+    				l.trace("New best word: " + bestword + " (" + bestscore + ")");
+    			}
     		}
     	}
-
 
     	l.info(bestword);
         // tell "bid" that we are about to begin a new round
@@ -248,9 +239,10 @@ public class G1Player implements Player{
         	Iterator<String> words = mine.getWordIterator();
         	while (words.hasNext()) {
                 String word = words.next();
-                l.trace(word);
+
                 Word tempword= new Word(word);
-               // System.out.println("reached 2");
+                l.trace(word + ": " + tempword.score);
+                // System.out.println("reached 2");
                 if(tempword.length==7){
                 	sevenletterlist.add(tempword);
                 }
