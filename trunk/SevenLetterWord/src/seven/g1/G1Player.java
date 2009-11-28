@@ -114,30 +114,33 @@ public class G1Player implements Player{
     		return 0;
     	}
 
-    	String s= new String();
     	char[] c= new char[openletters.size()];
     	for(int i=0; i<openletters.size();i++){
     		 c[i]= openletters.get(i).getAlphabet();
     	}
 
-    	int[] possCountKeep= new int[26];
-    	s= String.valueOf(c);
-    	Word open= new Word(s);
+//    	int[] possCountKeep= new int[26];
+    	String s = String.valueOf(c);
+    	Word open = new Word(s);
     	//greater than 4 logic
-    	for(int i=0;i<sevenletterlist.size();i++){
-    		Word current= sevenletterlist.get(i);
-    		if(current.issubsetof(open)){
-    			for(int j=0;j<26;j++){
-    				if(current.countKeep[j]>open.countKeep[j]){
-    					possCountKeep[j]++;
-    				}
+    	boolean matchfound = false;
+    	char bidChar = bidLetter.getAlphabet();
+    	int alpha= Integer.valueOf(bidChar) - Integer.valueOf('A');
+    	for(Word current : sevenletterlist ) {
+    		if (current.issubsetof(open)) {
+    			Word diff = current.subtract(open);
+    			// if we could use this letter, and won't also need more of it than exist...
+    			if (0 < diff.countKeep[alpha] && diff.countKeep[alpha] <= letterBag.count(bidChar)) {
+    				// then go ahead and bid
+    				l.debug("Bidding on " + bidChar + " for word " + current.word);
+    				matchfound = true;
+        			break;
     			}
     		}
+
     	}
 
-    	int alpha= Integer.valueOf(bidLetter.getAlphabet())- Integer.valueOf('A');
-
-    	if(possCountKeep[alpha]>0)
+    	if(matchfound)
     		return bidLetter.getValue();
         return 0;
     }
@@ -167,6 +170,18 @@ public class G1Player implements Player{
 				this.reachable[wordID] = false;
 			}
 		}
+	}
+
+	/**
+	 * Given the current state of the bag, what is the probability that the next draw
+	 * will be this character?
+	 * @param c the letter to be drawn
+	 * @return the probability of drawing this letter from the bag.
+	 */
+	public double drawProbability(char c) {
+		double letterCount = letterBag.count(c);
+		double bagSize = letterBag.countSum();
+		return letterCount/bagSize;
 	}
 
 	/**
