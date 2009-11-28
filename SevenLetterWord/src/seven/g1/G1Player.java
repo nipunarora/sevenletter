@@ -264,7 +264,15 @@ public class G1Player implements Player{
         }
     }
 
-
+    public Set<Word> getViableWords(LetterSet lset) {
+    	HashSet<Word> viable = new HashSet<Word>();
+    	for (int wordID : lset.getTransactions()) {
+    		if (reachable[wordID]) {
+    			viable.add(wordlist.get(wordID));
+    		}
+    	}
+    	return viable;
+    }
 
 
 
