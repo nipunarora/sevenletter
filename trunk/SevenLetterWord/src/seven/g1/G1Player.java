@@ -153,8 +153,12 @@ public class G1Player implements Player{
     	l.debug("On bidding round " + current_auction + " of " + total_auctions);
 
 
-    	if(openletters.size()<3){
-    		return 0;
+    	if(openletters.size()<1){
+    		String s= "ESAIRONLT";
+    		if(s.contains(String.valueOf(bidLetter.getAlphabet())))
+    		return (int)(bidLetter.getValue()*3)/2;
+    		else
+    			return (int)(bidLetter.getValue()*2)/3;
     	}
 
     	char[] c= new char[openletters.size()];
@@ -169,22 +173,35 @@ public class G1Player implements Player{
     	boolean matchfound = false;
     	char bidChar = bidLetter.getAlphabet();
     	int alpha= Integer.valueOf(bidChar) - Integer.valueOf('A');
+    	int sevenLetterCounter =0;
+    	double bid=0;
     	for(Word current : sevenletterlist ) {
     		if (current.issubsetof(open)) {
     			Word diff = current.subtract(open);
     			// if we could use this letter, and won't also need more of it than exist...
     			if (0 < diff.countKeep[alpha] && diff.countKeep[alpha] <= letterBag.count(bidChar)) {
     				// then go ahead and bid
-    				l.debug("Bidding on " + bidChar + " for word " + current.word);
+    				sevenLetterCounter++;
+
     				matchfound = true;
-        			break;
+    				/*double wProb= wordProbability(open,current);
+        			bid= bid+ wProb;*/
+    				l.debug("Bidding on " + bidChar + " for word " + current.word );
     			}
     		}
-
     	}
-
-    	if(matchfound)
-    		return bidLetter.getValue();
+    	
+    	double percentile= percentile(open,bidLetter.getAlphabet());
+    	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
+    	
+    	if(matchfound){
+    		if(percentile>0.75)
+    		return bidLetter.getValue()*2;
+    		else if(percentile>0&&percentile<=0.75)
+    			return bidLetter.getValue();
+    		else if(percentile ==0)
+    			return 0;
+    	}
     	l.debug(bidChar + " is not useful to us. Checking if we can reach a 7 letter word");
     	Word result;
     	if((result = canReach7LetterWord(openletters)) != null){
@@ -198,6 +215,52 @@ public class G1Player implements Player{
     	}
     }
 
+	public HashMap<Character,Double> calcProb(Word o){
+		HashMap<Character,Double> prob= new HashMap<Character,Double>();
+		for(int i=0; i<26;i++){
+		char bidChar= (char)(i+65);
+		Word open= new Word(o.getWord().concat(String.valueOf(bidChar)));
+		int alpha=i;
+		if(letterBag.count(bidChar)>0){
+		for(Word current : sevenletterlist ) {
+    		if (current.issubsetof(open)) {
+    			Word diff = current.subtract(open);
+    			// if we could use this letter, and won't also need more of it than exist...
+    			if (0 < diff.countKeep[alpha] && diff.countKeep[alpha] <= letterBag.count(bidChar)) {
+    				// then go ahead and bid
+    				double tempProb= wordProbability(open, current);
+    				prob.put(Character.valueOf(bidChar), tempProb);
+    				l.debug("bidChar "+ String.valueOf(bidChar)+ " Probability" + tempProb);
+    			}
+    		}
+    	}
+		
+		}
+		}
+		return prob;
+	}
+	
+	public Double percentile(Word o, char bidChar){
+		HashMap<Character,Double> prob= calcProb(o);
+		if(prob.size()==0)
+			return 0.00;
+		Character c= bidChar;
+		Collection tempC= prob.values();          	
+		Iterator it= tempC.iterator();
+		int lesscounter=0;
+		if(prob.containsKey(bidChar)){
+			while( it.hasNext()){
+			if(prob.get(Character.valueOf(bidChar))>(Double)it.next())
+				lesscounter++;
+			}
+		}
+		if(prob.size()>0){
+		return (double)lesscounter/prob.size();
+		}
+		else
+			return 0.00;
+	}
+	
 	private void won(Letter letterWon, int amount) {
 		Character c = letterWon.getAlphabet();
 		assert(0 <= letterBag.decrement(c));
@@ -245,7 +308,7 @@ public class G1Player implements Player{
 		return letterCount/bagSize;
 	}
 	/**
-	 * Returns the probability of the word being formed from the current rack
+	 * Returns the bid *probability of the word being formed from the current rack
 	 * @param s
 	 * @return
 	 */
@@ -254,11 +317,12 @@ public class G1Player implements Player{
 		double probability=50;
 		
 		Word diff= sevenLWord.subtract(openLetters);
-		
+		l.debug("sevenLword: " +sevenLWord.getWord()+ " openLetters: "+ openLetters.getWord());
 		for(int i=0;i<26;i++){
 			if(diff.countKeep[i]>0){
 				char c= (char)(i+65);
-				probability *= drawProbability(c);
+				//l.debug("draw probability of character " + String.valueOf(c) + "is "+ drawProbability(c));
+				probability = probability * drawProbability(c);
 			}
 		}
 		return probability;
