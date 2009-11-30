@@ -18,6 +18,26 @@ import seven.ui.SecretState;
  */
 public class G1Player implements Player{
 
+	/**
+	 * 
+	 * @author Manuel
+	 * Class to keep some information about other players (id, letters in possesion, and current score)
+	 * canGet7LetterWord
+	 */
+	private class TrackedPlayer{
+		int playerId;		
+		CountMap<Character> letterRack;
+		ArrayList<Letter> openLetters;
+		int score;
+		
+		public TrackedPlayer(int id){
+			playerId = id;
+			score = 100;
+			letterRack = new CountMap<Character>();
+			openLetters = new ArrayList<Letter>();
+		}
+		
+	}
 
 	/**
 	 * Constant string containing the 98 letters of a  US-English Scrabble set (no blanks)
@@ -32,14 +52,14 @@ public class G1Player implements Player{
 	static final LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
 	static final ArrayList<Word> wordlist = new ArrayList<Word>();
 	static final ArrayList<Word> sevenletterlist = new ArrayList<Word>();
-
+/*
 	static {
 		BasicConfigurator.configure();
 		Logger.getLogger(G1Player.class).setLevel(org.apache.log4j.Level.TRACE);
 		mine.buildIndex();
 		mine.aPriori(0.000001);
 		initDict();
-	}
+	}*/
 
 	/*
 	 * Fields specific to individual players:
@@ -57,6 +77,8 @@ public class G1Player implements Player{
 	int player_id = -1;
 	int current_auction = 0;
 	int total_auctions = 0;
+	int score;
+	ArrayList<TrackedPlayer> otherPlayers;
 
 	private Logger l = Logger.getLogger(this.getClass());
 	private boolean[] reachable = new boolean[wordlist.size()];
@@ -96,8 +118,25 @@ public class G1Player implements Player{
 			letterRack = new CountMap<Character>();
 			openletters.addAll(secretstate.getSecretLetters());
 			total_auctions = (7 - openletters.size()) * PlayerList.size();
+			score = secretstate.getScore();
+			if(otherPlayers == null){
+				otherPlayers = new ArrayList<TrackedPlayer>();
+				for(int i = 0; i < PlayerList.size(); i++){
+					otherPlayers.add(new TrackedPlayer(i));
+				}
+			}
+			else{
+				//If some players cannot continue the game because their score is 0
+				//does PlayerList still include them? If not we have to do more...
+				//It would be nice to know the results of a round :)
+				for(int i = 0; i < PlayerList.size(); i++){
+					TrackedPlayer adversary = otherPlayers.get(i); 
+					adversary.letterRack = new CountMap<Character>();
+					adversary.openLetters = new ArrayList<Letter>();
+				}
+			}
 			for (Letter l : openletters) {
-				won(l);
+				won(l, 0);
 			}
         	Arrays.fill(reachable, true);
 			l.debug("Seven letter size: " + sevenletterlist.size());
@@ -146,16 +185,21 @@ public class G1Player implements Player{
 
     	if(matchfound)
     		return bidLetter.getValue();
-        return 0;
+    	if(canReach7LetterWord(openletters))
+    		return 0;
+    	else
+    		return scoreIncrementIfAcquire(bidLetter);
     }
 
-	private void won(Letter letterWon) {
+	private void won(Letter letterWon, int amount) {
 		Character c = letterWon.getAlphabet();
 		assert(0 <= letterBag.decrement(c));
 		assert(0 <= letterRack.increment(c));
+		score -= amount;
 	}
 
-	private void lost(Letter letterLost) {
+	private void lost(PlayerBids bid) {
+		Letter letterLost = bid.getTargetLetter();
 		Character c = letterLost.getAlphabet();
 		int prevCount = letterBag.count(c) + letterRack.count(c);
 		letterBag.decrement(c);
@@ -174,6 +218,12 @@ public class G1Player implements Player{
 				this.reachable[wordID] = false;
 			}
 		}
+		
+		//Update information about the player who won the bid
+		TrackedPlayer adversary = otherPlayers.get(bid.getWinnerID());
+		adversary.score -= bid.getWinAmmount();
+		adversary.letterRack.increment(c);
+		adversary.openLetters.add(letterLost);
 	}
 
 	/**
@@ -195,13 +245,14 @@ public class G1Player implements Player{
 		if(!bidList.isEmpty()){
 			PlayerBids LastBid= bidList.get(bidList.size()-1);
 			Letter lastletter = LastBid.getTargetLetter();
+			int amountBid = LastBid.getWinAmmount();
 			if(player_id == LastBid.getWinnerID()) {
-				won(lastletter);
+				won(lastletter, amountBid);
 				l.debug("We acquired letter " + lastletter.getAlphabet()
-						+ " for " + LastBid.getWinAmmount());
+						+ " for " + amountBid);
 				openletters.add(LastBid.getTargetLetter());
 			} else {
-				lost(lastletter);
+				lost(LastBid);
 			}
     	}
 	}
@@ -232,6 +283,7 @@ public class G1Player implements Player{
     	}
 
     	l.info(bestword);
+    	score += bestscore;
         // tell "bid" that we are about to begin a new round
     	first = true;
     	return bestword;
@@ -270,7 +322,108 @@ public class G1Player implements Player{
     	}
     	return viable;
     }
+    
+    /**
+     * @return true if we can get a 7 letter word with our letters and some of the ones left in letterBag
+     */
+    
+    public boolean canReach7LetterWord(ArrayList<Letter> letterSet){
+    	char[] c= new char[letterSet.size()];
+    	for(int i=0; i<letterSet.size();i++){
+    		 c[i]= letterSet.get(i).getAlphabet();
+    	}
 
+    	String s = String.valueOf(c);
+    	Word open = new Word(s);
+    	boolean matchfound;
 
+    	for(Word current : sevenletterlist ) {
+    			matchfound = true;
+    			Word diff = current.subtract(open);
+    			for (int i = 0; i < 26; i++) {
+    				int code = Integer.valueOf('A') + i;
+    				char letter = (char) code;
+    				if(letterBag.count(letter) < diff.countKeep[i])
+    					matchfound = false;
+    			}
+    			if(matchfound)
+    				return true;
+    	}
+    	return false;
+    }
+    
+    /**
+     * 
+     * @param letterSet
+     * @return Return number of 7 letter words that can be formed with the letters in letterSet
+     */
+    
+    public int reachable7LetterWords(ArrayList<Letter> letterSet){
+    	char[] c= new char[letterSet.size()];
+    	for(int i=0; i<letterSet.size();i++){
+    		 c[i]= letterSet.get(i).getAlphabet();
+    	}
+
+    	String s = String.valueOf(c);
+    	Word open = new Word(s);
+    	boolean matchfound;
+    	int count = 0;
+
+    	for(Word current : sevenletterlist ) {
+    			matchfound = true;
+    			Word diff = current.subtract(open);
+    			for (int i = 0; i < 26; i++) {
+    				int code = Integer.valueOf('A') + i;
+    				char letter = (char) code;
+    				if(letterBag.count(letter) < diff.countKeep[i])
+    					matchfound = false;
+    			}
+    			if(matchfound)
+    				count++;
+    	}
+    	return count;
+    }
+    
+    /**
+     * 
+     * @param l letter that we are considering
+     * @return how much our score would be incremented if we got that letter
+     */
+    
+    public int scoreIncrementIfAcquire(Letter l){
+    	char[] c= new char[openletters.size()];
+    	char[] c2= new char[openletters.size()+1];
+    	int i;
+    	for(i=0; i<openletters.size();i++){
+    		 c[i]= openletters.get(i).getAlphabet();
+    		 c2[i]= openletters.get(i).getAlphabet();
+    	}
+    	c2[i] = l.getAlphabet();
+
+    	String s = String.valueOf(c);
+    	Word open= new Word(s);
+    	s = String.valueOf(c2);
+    	Word open2 = new Word(s);
+
+    	int bestscore1 = 0;
+    	int bestscore2 = 0;
+    	for (Word candidate : wordlist) {
+    		if(open.issubsetof(candidate)){
+    			if (candidate.score > bestscore1) {
+    				bestscore1 = candidate.score;
+    			}
+    			if (candidate.score > bestscore2){
+    				bestscore2 = candidate.score;
+    			}
+    		}
+    		else if(open2.issubsetof(candidate)){
+    			if (candidate.score > bestscore2){
+    				bestscore2 = candidate.score;
+    			}
+    		}
+    	}
+    	
+    	return bestscore2 - bestscore1;
+    }
 
 }
