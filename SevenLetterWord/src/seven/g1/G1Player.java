@@ -52,14 +52,14 @@ public class G1Player implements Player{
 	static final LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
 	static final ArrayList<Word> wordlist = new ArrayList<Word>();
 	static final ArrayList<Word> sevenletterlist = new ArrayList<Word>();
-/*
+
 	static {
 		BasicConfigurator.configure();
 		Logger.getLogger(G1Player.class).setLevel(org.apache.log4j.Level.TRACE);
 		mine.buildIndex();
 		mine.aPriori(0.000001);
 		initDict();
-	}*/
+	}
 
 	/*
 	 * Fields specific to individual players:
@@ -185,10 +185,17 @@ public class G1Player implements Player{
 
     	if(matchfound)
     		return bidLetter.getValue();
-    	if(canReach7LetterWord(openletters))
+    	l.debug(bidChar + " is not useful to us. Checking if we can reach a 7 letter word");
+    	Word result;
+    	if((result = canReach7LetterWord(openletters)) != null){
+    		l.debug("Can reach "+result.word+", bid 0 on "+bidChar+" and wait for a good letter");
     		return 0;
-    	else
-    		return scoreIncrementIfAcquire(bidLetter);
+    	}
+    	else{
+    		int value = scoreIncrementIfAcquire(bidLetter); 
+    		l.debug("Cannot reach 7, bid "+value+" on "+bidChar);
+    		return value;
+    	}
     }
 
 	private void won(Letter letterWon, int amount) {
@@ -347,7 +354,7 @@ public class G1Player implements Player{
      * @return true if we can get a 7 letter word with our letters and some of the ones left in letterBag
      */
     
-    public boolean canReach7LetterWord(ArrayList<Letter> letterSet){
+    public Word canReach7LetterWord(ArrayList<Letter> letterSet){
     	char[] c= new char[letterSet.size()];
     	for(int i=0; i<letterSet.size();i++){
     		 c[i]= letterSet.get(i).getAlphabet();
@@ -356,20 +363,23 @@ public class G1Player implements Player{
     	String s = String.valueOf(c);
     	Word open = new Word(s);
     	boolean matchfound;
+    	int diffCount;
 
     	for(Word current : sevenletterlist ) {
     			matchfound = true;
     			Word diff = current.subtract(open);
+    			diffCount = 0;
     			for (int i = 0; i < 26; i++) {
+    				diffCount += diff.countKeep[i];
     				int code = Integer.valueOf('A') + i;
     				char letter = (char) code;
     				if(letterBag.count(letter) < diff.countKeep[i])
     					matchfound = false;
     			}
-    			if(matchfound)
-    				return true;
+    			if(matchfound && diffCount <= (7-letterSet.size()))
+    				return current;
     	}
-    	return false;
+    	return null;
     }
     
     /**
@@ -387,21 +397,24 @@ public class G1Player implements Player{
     	String s = String.valueOf(c);
     	Word open = new Word(s);
     	boolean matchfound;
-    	int count = 0;
+    	int diffCount, wordCount;
 
+    	wordCount = 0;
     	for(Word current : sevenletterlist ) {
     			matchfound = true;
     			Word diff = current.subtract(open);
+    			diffCount = 0;
     			for (int i = 0; i < 26; i++) {
+    				diffCount += diff.countKeep[i];
     				int code = Integer.valueOf('A') + i;
     				char letter = (char) code;
     				if(letterBag.count(letter) < diff.countKeep[i])
     					matchfound = false;
     			}
-    			if(matchfound)
-    				count++;
+    			if(matchfound && diffCount <= (7-letterSet.size()))
+    				wordCount++;
     	}
-    	return count;
+    	return wordCount;
     }
     
     /**
