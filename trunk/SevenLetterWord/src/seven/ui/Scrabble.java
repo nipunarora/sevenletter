@@ -82,7 +82,6 @@ public class Scrabble {
              case 'Z': score = 10;break;
              case '*': score = 0;break;
 
-
          }
 
          return score;
