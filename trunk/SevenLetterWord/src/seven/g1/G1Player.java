@@ -237,6 +237,26 @@ public class G1Player implements Player{
 		double bagSize = letterBag.countSum();
 		return letterCount/bagSize;
 	}
+	/**
+	 * Returns the probability of the word being formed from the current rack
+	 * @param s
+	 * @return
+	 */
+	public double wordProbability(Word openLetters, Word sevenLWord){
+		
+		double probability=50;
+		
+		Word diff= sevenLWord.subtract(openLetters);
+		
+		for(int i=0;i<26;i++){
+			if(diff.countKeep[i]>0){
+				char c= (char)(i+65);
+				probability *= drawProbability(c);
+			}
+		}
+		return probability;
+		
+	}
 
 	/**
 	 * @param bidList
