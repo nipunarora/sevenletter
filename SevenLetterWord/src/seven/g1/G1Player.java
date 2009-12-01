@@ -164,7 +164,7 @@ public class G1Player implements Player{
 		RefList=PlayerBidList;
     	refstate=secretstate;
     	++current_auction;
-    	l.debug("On bidding round " + current_auction + " of " + total_auctions);
+    	l.debug("Player " + player_id +" on bidding round " + current_auction + " of " + total_auctions);
 
        	char bidChar = bidLetter.getAlphabet();
     	if(openletters.isEmpty()){
@@ -297,20 +297,6 @@ public class G1Player implements Player{
 			}
 		}
 
-		set = (LetterSet) mine.getCachedItemSet(new String[] {Character.toString(c)});
-		int bagarray[] = arrayFromMap(letterBag);
-		int rackarray[] = arrayFromMap(letterRack);
-		// update words that contain this letter
-		l.debug("Updating counters for " + set.getSupport() + " words");
-		int ctr = 0;
-		for (int idx : set.getTransactions()) {
-			if (reachable[idx]) {
-				ctr++;
-				wordscore[idx] = wordlist.get(idx).drawPossibilities(bagarray, rackarray);
-			}
-		}
-		l.debug("Updated counters for " + ctr + " words");
-
 		//Update information about the player who won the bid
 		TrackedPlayer adversary = otherPlayers.get(bid.getWinnerID());
 		adversary.score -= bid.getWinAmmount();
@@ -367,11 +353,31 @@ public class G1Player implements Player{
 			} else {
 				lost(LastBid);
 			}
+			char c = LastBid.getTargetLetter().getAlphabet();
+			LetterSet set = (LetterSet) mine.getCachedItemSet(new String[] {Character.toString(c)});
+			int bagarray[] = arrayFromMap(letterBag);
+			int rackarray[] = arrayFromMap(letterRack);
+			// update words that contain this letter
+			l.debug("Updating counters for " + set.getSupport() + " words");
+			int ctr = 0;
+			int changed = 0;
+			for (int idx : set.getTransactions()) {
+				if (reachable[idx]) {
+					ctr++;
+					long newscore =  wordlist.get(idx).drawPossibilities(bagarray, rackarray);
+					if (newscore != wordscore[idx]) {
+						changed++;
+						wordscore[idx] = newscore;
+					}
+				}
+			}
+			l.debug("Updated counters for " +changed + " out of " + ctr + " words");
+
     	}
 	}
 
     public String returnWord() {
-    	l.debug("checking bid for final round: " + RefList.size());
+    	l.debug("Player " + player_id  + " checking bid for final round: " + RefList.size());
     	checkBidSuccess(RefList);
 
     	char[] c= new char[openletters.size()];
