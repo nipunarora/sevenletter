@@ -58,7 +58,7 @@ public class G1Player implements Player{
 
 	static {
 		BasicConfigurator.configure();
-		Logger.getLogger(G1Player.class).setLevel(org.apache.log4j.Level.TRACE);
+		Logger.getLogger(G1Player.class).setLevel(org.apache.log4j.Level.DEBUG);
 		mine.buildIndex();
 		mine.aPriori(0.000001);
 		initDict();
@@ -91,7 +91,8 @@ public class G1Player implements Player{
 
 	private Logger l = Logger.getLogger(this.getClass());
 	private boolean[] reachable = new boolean[wordlist.size()];
-	public long[] wordscore = Arrays.copyOf(startscores, startscores.length);
+	private long[] wordscore = Arrays.copyOf(startscores, startscores.length);
+
 
     /**
      * More or less empty constructor--all of our initialization is now done
@@ -129,6 +130,8 @@ public class G1Player implements Player{
 			openletters.addAll(secretstate.getSecretLetters());
 			total_auctions = (7 - openletters.size()) * PlayerList.size();
 			score = secretstate.getScore();
+
+
 			if(otherPlayers == null){
 				otherPlayers = new ArrayList<TrackedPlayer>();
 				for(int i = 0; i < PlayerList.size(); i++){
@@ -145,6 +148,7 @@ public class G1Player implements Player{
 					adversary.openLetters = new ArrayList<Letter>();
 				}
 			}
+			// initialize
 			for (Letter l : openletters) {
 				won(l, 0);
 			}
@@ -162,48 +166,44 @@ public class G1Player implements Player{
     	++current_auction;
     	l.debug("On bidding round " + current_auction + " of " + total_auctions);
 
-
-    	if(openletters.size()<1){
+       	char bidChar = bidLetter.getAlphabet();
+    	if(openletters.isEmpty()){
     		String s= "ESAIRONLT";
-    		if(s.contains(String.valueOf(bidLetter.getAlphabet())))
-    		return (int)(bidLetter.getValue()*3)/2;
-    		else
+    		if(s.contains(Character.toString(bidChar))) {
+    			return (int)(bidLetter.getValue()*3)/2;
+    		} else {
     			return (int)(bidLetter.getValue()*2)/3;
+    		}
     	}
 
     	char[] c= new char[openletters.size()];
+    	String[] terms = new String[openletters.size()];
     	for(int i=0; i<openletters.size();i++){
-    		 c[i]= openletters.get(i).getAlphabet();
+    		char letter = openletters.get(i).getAlphabet();
+    		c[i]= letter;
+    		terms[i] = Character.toString(letter);
     	}
-
     	String s = String.valueOf(c);
     	Word open = new Word(s);
-    	//greater than 4 logic
-    	boolean matchfound = false;
-    	char bidChar = bidLetter.getAlphabet();
-    	int alpha= Integer.valueOf(bidChar) - OFFSET_OF_A;
-    	int sevenLetterCounter =0;
-    	double bid=0;
-    	for(Word current : sevenletterlist ) {
-    		if (current.issubsetof(open)) {
-    			Word diff = current.subtract(open);
-    			// if we could use this letter, and won't also need more of it than exist...
-    			if (0 < diff.countKeep[alpha] && diff.countKeep[alpha] <= letterBag.count(bidChar)) {
-    				// then go ahead and bid
-    				sevenLetterCounter++;
 
-    				matchfound = true;
-    				/*double wProb= wordProbability(open,current);
-        			bid= bid+ wProb;*/
-    				l.debug("Bidding on " + bidChar + " for word " + current.word );
-    			}
-    		}
-    	}
+    	LetterSet lset = (LetterSet) mine.getCachedItemSet(terms);
+    	Collection<Word> currenttargets = getReachableSevenLetterWords(lset);
+    	l.debug("From " + s + " we can reach " + currenttargets.size() + " seven-letter words");
+
+    	String[] extended_terms = Arrays.copyOf(terms, terms.length + 1);
+    	extended_terms[terms.length] = Character.toString(bidChar);
+    	lset = (LetterSet)mine.getCachedItemSet(extended_terms);
+    	Collection<Word> couldreach = getReachableSevenLetterWords(lset);
+    	l.debug("Acquiring " + bidChar + " limits us to " + couldreach.size() + " seven-letter words");
+
+
+    	// does this letter help us?
+    	boolean matchfound = !couldreach.isEmpty();
 
     	double percentile= percentile(open,bidLetter.getAlphabet());
     	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
 
-    	if(matchfound){
+    	if(matchfound){  // there is a seven-letter we can reach
     		if(percentile>0.75)
     		return bidLetter.getValue()*2;
     		else if(percentile>0&&percentile<=0.75)
@@ -212,9 +212,9 @@ public class G1Player implements Player{
     			return 0;
     	}
     	l.debug(bidChar + " is not useful to us. Checking if we can reach a 7 letter word");
-    	Word result;
-    	if((result = canReach7LetterWord(openletters)) != null){
-    		l.debug("Can reach "+result.word+", bid 0 on "+bidChar+" and wait for a good letter");
+
+    	if(!currenttargets.isEmpty()){
+    		l.debug("Can still reach a 7-letter, bid 0 on "+bidChar+" and wait for a good letter");
     		return 0;
     	}
     	else{
@@ -224,7 +224,7 @@ public class G1Player implements Player{
     	}
     }
 
-	public HashMap<Character,Double> calcProb(Word o){
+	private HashMap<Character,Double> calcProb(Word o){
 		HashMap<Character,Double> prob= new HashMap<Character,Double>();
 		for(int i=0; i<26;i++){
 		char bidChar= (char)(i+65);
@@ -239,7 +239,7 @@ public class G1Player implements Player{
     				// then go ahead and bid
     				double tempProb= wordProbability(open, current);
     				prob.put(Character.valueOf(bidChar), tempProb);
-    				l.debug("bidChar "+ String.valueOf(bidChar)+ " Probability" + tempProb);
+    				l.trace("bidChar "+ String.valueOf(bidChar)+ " Probability" + tempProb);
     			}
     		}
     	}
@@ -249,11 +249,10 @@ public class G1Player implements Player{
 		return prob;
 	}
 
-	public Double percentile(Word o, char bidChar){
+	private Double percentile(Word o, char bidChar){
 		HashMap<Character,Double> prob= calcProb(o);
 		if(prob.size()==0)
 			return 0.00;
-		Character c= bidChar;
 		Collection tempC= prob.values();
 		Iterator it= tempC.iterator();
 		int lesscounter=0;
@@ -325,7 +324,7 @@ public class G1Player implements Player{
 	 * @param c the letter to be drawn
 	 * @return the probability of drawing this letter from the bag.
 	 */
-	public double drawProbability(char c) {
+	private double drawProbability(char c) {
 		double letterCount = letterBag.count(c);
 		double bagSize = letterBag.countSum();
 		return letterCount/bagSize;
@@ -335,12 +334,12 @@ public class G1Player implements Player{
 	 * @param s
 	 * @return
 	 */
-	public double wordProbability(Word openLetters, Word sevenLWord){
+	private double wordProbability(Word openLetters, Word sevenLWord){
 
 		double probability=50;
 
 		Word diff= sevenLWord.subtract(openLetters);
-		l.debug("sevenLword: " +sevenLWord.getWord()+ " openLetters: "+ openLetters.getWord());
+		l.trace("sevenLword: " +sevenLWord.getWord()+ " openLetters: "+ openLetters.getWord());
 		for(int i=0;i<26;i++){
 			if(diff.countKeep[i]>0){
 				char c= (char)(i+65);
@@ -403,7 +402,7 @@ public class G1Player implements Player{
     	return bestword;
     }
 
-    public static void initDict()
+    private static void initDict()
     {
     	Logger l = Logger.getLogger(G1Player.class);
         try{
@@ -427,81 +426,20 @@ public class G1Player implements Player{
         }
     }
 
-    public Set<Word> getViableWords(LetterSet lset) {
-    	HashSet<Word> viable = new HashSet<Word>();
-    	for (int wordID : lset.getTransactions()) {
-    		if (reachable[wordID]) {
-    			viable.add(wordlist.get(wordID));
+
+    private Collection<Word> getReachableSevenLetterWords(LetterSet lset) {
+    	ArrayList<Word> found = new ArrayList<Word>();
+    	if (null != lset) {
+    		for (int wordID : lset.getTransactions()) {
+    			if (reachable[wordID]) {
+    				Word w = wordlist.get(wordID);
+    				if (7 == w.length) {
+    					found.add(w);
+    				}
+    			}
     		}
     	}
-    	return viable;
-    }
-
-    /**
-     * @return true if we can get a 7 letter word with our letters and some of the ones left in letterBag
-     */
-
-    public Word canReach7LetterWord(ArrayList<Letter> letterSet){
-    	char[] c= new char[letterSet.size()];
-    	for(int i=0; i<letterSet.size();i++){
-    		 c[i]= letterSet.get(i).getAlphabet();
-    	}
-
-    	String s = String.valueOf(c);
-    	Word open = new Word(s);
-    	boolean matchfound;
-    	int diffCount;
-
-    	for(Word current : sevenletterlist ) {
-    			matchfound = true;
-    			Word diff = current.subtract(open);
-    			diffCount = 0;
-    			for (int i = 0; i < 26; i++) {
-    				diffCount += diff.countKeep[i];
-    				int code = OFFSET_OF_A + i;
-    				char letter = (char) code;
-    				if(letterBag.count(letter) < diff.countKeep[i])
-    					matchfound = false;
-    			}
-    			if(matchfound && diffCount <= (7-letterSet.size()))
-    				return current;
-    	}
-    	return null;
-    }
-
-    /**
-     *
-     * @param letterSet
-     * @return Return number of 7 letter words that can be formed with the letters in letterSet
-     */
-
-    public int reachable7LetterWords(ArrayList<Letter> letterSet){
-    	char[] c= new char[letterSet.size()];
-    	for(int i=0; i<letterSet.size();i++){
-    		 c[i]= letterSet.get(i).getAlphabet();
-    	}
-
-    	String s = String.valueOf(c);
-    	Word open = new Word(s);
-    	boolean matchfound;
-    	int diffCount, wordCount;
-
-    	wordCount = 0;
-    	for(Word current : sevenletterlist ) {
-    			matchfound = true;
-    			Word diff = current.subtract(open);
-    			diffCount = 0;
-    			for (int i = 0; i < 26; i++) {
-    				diffCount += diff.countKeep[i];
-    				int code = OFFSET_OF_A + i;
-    				char letter = (char) code;
-    				if(letterBag.count(letter) < diff.countKeep[i])
-    					matchfound = false;
-    			}
-    			if(matchfound && diffCount <= (7-letterSet.size()))
-    				wordCount++;
-    	}
-    	return wordCount;
+    	return found;
     }
 
     /**
@@ -510,7 +448,7 @@ public class G1Player implements Player{
      * @return how much our score would be incremented if we got that letter
      */
 
-    public int scoreIncrementIfAcquire(Letter l){
+    private int scoreIncrementIfAcquire(Letter l){
     	char[] c= new char[openletters.size()];
     	char[] c2= new char[openletters.size()+1];
     	int i;
