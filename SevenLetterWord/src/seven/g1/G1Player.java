@@ -54,7 +54,7 @@ public class G1Player implements Player{
 	static final LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
 	static final ArrayList<Word> wordlist = new ArrayList<Word>();
 	static final ArrayList<Word> sevenletterlist = new ArrayList<Word>();
-	static final long startscores[];
+	static final long base_probability_counters[];
 
 	static {
 		BasicConfigurator.configure();
@@ -62,11 +62,11 @@ public class G1Player implements Player{
 		mine.buildIndex();
 		mine.aPriori(0.000001);
 		initDict();
-		startscores = new long[wordlist.size()];
+		base_probability_counters = new long[wordlist.size()];
 		Word tmp = new Word(SCRABBLE_LETTERS_EN_US);
 		int[] startbag = tmp.countKeep;
 		for (int i = 0; i < wordlist.size(); i++) {
-			startscores[i] = wordlist.get(i).drawPossibilities(startbag);
+			base_probability_counters[i] = wordlist.get(i).drawPossibilities(startbag);
 		}
 	}
 
@@ -91,7 +91,7 @@ public class G1Player implements Player{
 
 	private Logger l = Logger.getLogger(this.getClass());
 	private boolean[] reachable = new boolean[wordlist.size()];
-	private long[] wordscore = Arrays.copyOf(startscores, startscores.length);
+	private long[] word_draw_possibilities = Arrays.copyOf(base_probability_counters, base_probability_counters.length);
 
 
     /**
@@ -365,9 +365,9 @@ public class G1Player implements Player{
 				if (reachable[idx]) {
 					ctr++;
 					long newscore =  wordlist.get(idx).drawPossibilities(bagarray, rackarray);
-					if (newscore != wordscore[idx]) {
+					if (newscore != word_draw_possibilities[idx]) {
 						changed++;
-						wordscore[idx] = newscore;
+						word_draw_possibilities[idx] = newscore;
 					}
 				}
 			}
