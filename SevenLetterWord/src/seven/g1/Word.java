@@ -1,5 +1,7 @@
 package seven.g1;
 
+import java.math.BigInteger;
+
 import org.apache.log4j.Logger;
 
 import seven.ui.Scrabble;
@@ -73,8 +75,92 @@ public class Word {
 		return this.word;
 	}
 
+
+	public long drawPossibilities(int[] bag_counts) {
+		return drawPossibilities(bag_counts, new int[LETTERS]);
+	}
+
+	public long drawPossibilities(int[] bag_counts, int[] rack_counts) {
+		assert(LETTERS == bag_counts.length);
+		assert(LETTERS == rack_counts.length);
+		int needed = 0;
+		long count = 1;
+		for (int i = 0; i < LETTERS; i++) {
+			int n = bag_counts[i];
+			int r = countKeep[i] - rack_counts[i];
+			needed += r;
+			int nCr = nCr(n,r);
+			count *= nCr;
+		}
+		long permute = factorial(needed); // I think this is the wrong thing to do. :-(
+		count *= permute; // oh, whoa...
+		return count;
+	}
+
+	private static int nCr(int n, int r) {
+		int ans = 1;
+		if (r > n) { // no way to choose 1 from 0
+			ans = 0;
+		} else { // formula: n!/(n-r)!r!
+			// calculate n!/(n-r)!
+			for (int i = n; i > n - r; --i) {
+				ans *= i;
+			}
+			// divide by r! (start with 2, because 1 is a silly factor
+			for (int i = 2; i <= r; i++) {
+				ans /= i;
+			}
+		}
+		return ans;
+	}
+
+	// it is far from clear that you didn't mess this one up, Benjamin
+	private static BigInteger denominate(int bagsize, int draws, int lettersneeded) {
+		BigInteger it = BigInteger.ONE;
+		int d_minus_r = draws - lettersneeded;
+		int n_minus_d = bagsize - draws;
+		int factorial_limit = Math.max(d_minus_r, n_minus_d);
+		for (int i = factorial_limit; i <= bagsize; i++) {
+			it = it.multiply(BigInteger.valueOf(i));
+		}
+		for (long i = Math.min(d_minus_r,n_minus_d); i > 1; --i) {
+			it.divide(BigInteger.valueOf(i));
+		}
+
+		return it;
+	}
+
+	private static int factorial(int n) {
+		int f = 1;
+		for (int i = 1; i <= n; i++) {
+			 f *= i;
+		}
+		return f;
+	}
+
 	public static void main(String[] args) {
-		Word w = new Word("ABIOSES");
-		System.out.println(w.word);
+		//Word w = new Word("ABIOSES");
+		//System.out.println(w.word);
+		int startbag[] = new Word(G1Player.SCRABBLE_LETTERS_EN_US).countKeep;
+		String inputs[] = {
+				"Q",
+				"KJQXZ",
+				"KJQXZZ",
+				"ABIOSES",
+				"YYKJQXZ",
+				"AA",
+				"EEEEIOA",
+				"EEEEIAA",
+				"EEOIIAA",
+				"EEEE",
+				"EEEA",
+		};
+		for (String in : inputs) {
+			Word tmp = new Word(in);
+			System.out.format("Word %s:\t%d\n", new Object[]{in,tmp.drawPossibilities(startbag)});
+		}
+		System.out.println(denominate(98, 14, 7));
+		System.out.println(denominate(98, 42, 7));
+		System.out.println(denominate(98, 91, 7));
 	}
 }

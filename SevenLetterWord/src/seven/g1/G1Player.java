@@ -18,27 +18,7 @@ import seven.ui.SecretState;
  */
 public class G1Player implements Player{
 
-	/**
-	 * 
-	 * @author Manuel
-	 * Class to keep some information about other players (id, letters in possesion, and current score)
-	 * canGet7LetterWord
-	 */
-	private class TrackedPlayer{
-		int playerId;		
-		CountMap<Character> letterRack;
-		ArrayList<Letter> openLetters;
-		int score;
-		
-		public TrackedPlayer(int id){
-			playerId = id;
-			score = 100;
-			letterRack = new CountMap<Character>();
-			openLetters = new ArrayList<Letter>();
-		}
-		
-	}
-
+	private static final Integer OFFSET_OF_A = Integer.valueOf('A');
 	/**
 	 * Constant string containing the 98 letters of a  US-English Scrabble set (no blanks)
 	 */
@@ -46,12 +26,35 @@ public class G1Player implements Player{
 		"EEEEEEEEEEEEAAAAAAAAAIIIIIIIIIOOOOOOOONNNNNNRRRRRR" +
 		"TTTTTTLLLLSSSSUUUUDDDDGGGBBCCMMPPFFHHVVWWYYKJXQZ";
 
+	/**
+	 *
+	 * @author Manuel
+	 * Class to keep some information about other players (id, letters in possesion, and current score)
+	 * canGet7LetterWord
+	 */
+	private class TrackedPlayer{
+		int playerId;
+		CountMap<Character> letterRack;
+		ArrayList<Letter> openLetters;
+		int score;
+
+		public TrackedPlayer(int id){
+			playerId = id;
+			score = 100;
+			letterRack = new CountMap<Character>();
+			openLetters = new ArrayList<Letter>();
+		}
+
+	}
+
+
 	/*
 	 * Shared precalculated information for all instances of our player
 	 */
 	static final LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
 	static final ArrayList<Word> wordlist = new ArrayList<Word>();
 	static final ArrayList<Word> sevenletterlist = new ArrayList<Word>();
+	static final long startscores[];
 
 	static {
 		BasicConfigurator.configure();
@@ -59,6 +62,12 @@ public class G1Player implements Player{
 		mine.buildIndex();
 		mine.aPriori(0.000001);
 		initDict();
+		startscores = new long[wordlist.size()];
+		Word tmp = new Word(SCRABBLE_LETTERS_EN_US);
+		int[] startbag = tmp.countKeep;
+		for (int i = 0; i < wordlist.size(); i++) {
+			startscores[i] = wordlist.get(i).drawPossibilities(startbag);
+		}
 	}
 
 	/*
@@ -82,6 +91,7 @@ public class G1Player implements Player{
 
 	private Logger l = Logger.getLogger(this.getClass());
 	private boolean[] reachable = new boolean[wordlist.size()];
+	public long[] wordscore = Arrays.copyOf(startscores, startscores.length);
 
     /**
      * More or less empty constructor--all of our initialization is now done
@@ -130,7 +140,7 @@ public class G1Player implements Player{
 				//does PlayerList still include them? If not we have to do more...
 				//It would be nice to know the results of a round :)
 				for(int i = 0; i < PlayerList.size(); i++){
-					TrackedPlayer adversary = otherPlayers.get(i); 
+					TrackedPlayer adversary = otherPlayers.get(i);
 					adversary.letterRack = new CountMap<Character>();
 					adversary.openLetters = new ArrayList<Letter>();
 				}
@@ -166,13 +176,12 @@ public class G1Player implements Player{
     		 c[i]= openletters.get(i).getAlphabet();
     	}
 
-//    	int[] possCountKeep= new int[26];
     	String s = String.valueOf(c);
     	Word open = new Word(s);
     	//greater than 4 logic
     	boolean matchfound = false;
     	char bidChar = bidLetter.getAlphabet();
-    	int alpha= Integer.valueOf(bidChar) - Integer.valueOf('A');
+    	int alpha= Integer.valueOf(bidChar) - OFFSET_OF_A;
     	int sevenLetterCounter =0;
     	double bid=0;
     	for(Word current : sevenletterlist ) {
@@ -190,10 +199,10 @@ public class G1Player implements Player{
     			}
     		}
     	}
-    	
+
     	double percentile= percentile(open,bidLetter.getAlphabet());
     	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
-    	
+
     	if(matchfound){
     		if(percentile>0.75)
     		return bidLetter.getValue()*2;
@@ -209,7 +218,7 @@ public class G1Player implements Player{
     		return 0;
     	}
     	else{
-    		int value = scoreIncrementIfAcquire(bidLetter); 
+    		int value = scoreIncrementIfAcquire(bidLetter);
     		l.debug("Cannot reach 7, bid "+value+" on "+bidChar);
     		return value;
     	}
@@ -234,18 +243,18 @@ public class G1Player implements Player{
     			}
     		}
     	}
-		
+
 		}
 		}
 		return prob;
 	}
-	
+
 	public Double percentile(Word o, char bidChar){
 		HashMap<Character,Double> prob= calcProb(o);
 		if(prob.size()==0)
 			return 0.00;
 		Character c= bidChar;
-		Collection tempC= prob.values();          	
+		Collection tempC= prob.values();
 		Iterator it= tempC.iterator();
 		int lesscounter=0;
 		if(prob.containsKey(bidChar)){
@@ -260,7 +269,7 @@ public class G1Player implements Player{
 		else
 			return 0.00;
 	}
-	
+
 	private void won(Letter letterWon, int amount) {
 		Character c = letterWon.getAlphabet();
 		assert(0 <= letterBag.decrement(c));
@@ -288,7 +297,21 @@ public class G1Player implements Player{
 				this.reachable[wordID] = false;
 			}
 		}
-		
+
+		set = (LetterSet) mine.getCachedItemSet(new String[] {Character.toString(c)});
+		int bagarray[] = arrayFromMap(letterBag);
+		int rackarray[] = arrayFromMap(letterRack);
+		// update words that contain this letter
+		l.debug("Updating counters for " + set.getSupport() + " words");
+		int ctr = 0;
+		for (int idx : set.getTransactions()) {
+			if (reachable[idx]) {
+				ctr++;
+				wordscore[idx] = wordlist.get(idx).drawPossibilities(bagarray, rackarray);
+			}
+		}
+		l.debug("Updated counters for " + ctr + " words");
+
 		//Update information about the player who won the bid
 		TrackedPlayer adversary = otherPlayers.get(bid.getWinnerID());
 		adversary.score -= bid.getWinAmmount();
@@ -313,9 +336,9 @@ public class G1Player implements Player{
 	 * @return
 	 */
 	public double wordProbability(Word openLetters, Word sevenLWord){
-		
+
 		double probability=50;
-		
+
 		Word diff= sevenLWord.subtract(openLetters);
 		l.debug("sevenLword: " +sevenLWord.getWord()+ " openLetters: "+ openLetters.getWord());
 		for(int i=0;i<26;i++){
@@ -326,7 +349,7 @@ public class G1Player implements Player{
 			}
 		}
 		return probability;
-		
+
 	}
 
 	/**
@@ -413,11 +436,11 @@ public class G1Player implements Player{
     	}
     	return viable;
     }
-    
+
     /**
      * @return true if we can get a 7 letter word with our letters and some of the ones left in letterBag
      */
-    
+
     public Word canReach7LetterWord(ArrayList<Letter> letterSet){
     	char[] c= new char[letterSet.size()];
     	for(int i=0; i<letterSet.size();i++){
@@ -435,7 +458,7 @@ public class G1Player implements Player{
     			diffCount = 0;
     			for (int i = 0; i < 26; i++) {
     				diffCount += diff.countKeep[i];
-    				int code = Integer.valueOf('A') + i;
+    				int code = OFFSET_OF_A + i;
     				char letter = (char) code;
     				if(letterBag.count(letter) < diff.countKeep[i])
     					matchfound = false;
@@ -445,13 +468,13 @@ public class G1Player implements Player{
     	}
     	return null;
     }
-    
+
     /**
-     * 
+     *
      * @param letterSet
      * @return Return number of 7 letter words that can be formed with the letters in letterSet
      */
-    
+
     public int reachable7LetterWords(ArrayList<Letter> letterSet){
     	char[] c= new char[letterSet.size()];
     	for(int i=0; i<letterSet.size();i++){
@@ -470,7 +493,7 @@ public class G1Player implements Player{
     			diffCount = 0;
     			for (int i = 0; i < 26; i++) {
     				diffCount += diff.countKeep[i];
-    				int code = Integer.valueOf('A') + i;
+    				int code = OFFSET_OF_A + i;
     				char letter = (char) code;
     				if(letterBag.count(letter) < diff.countKeep[i])
     					matchfound = false;
@@ -480,13 +503,13 @@ public class G1Player implements Player{
     	}
     	return wordCount;
     }
-    
+
     /**
-     * 
+     *
      * @param l letter that we are considering
      * @return how much our score would be incremented if we got that letter
      */
-    
+
     public int scoreIncrementIfAcquire(Letter l){
     	char[] c= new char[openletters.size()];
     	char[] c2= new char[openletters.size()+1];
@@ -519,8 +542,17 @@ public class G1Player implements Player{
     			}
     		}
     	}
-    	
+
     	return bestscore2 - bestscore1;
+    }
+
+    private static int[] arrayFromMap(CountMap<Character> m) {
+    	int[] a = new int[26]; // values initialized to 0
+    	for (Map.Entry<Character,Integer> e : m.entrySet()) {
+    		int idx = Integer.valueOf(e.getKey()) - OFFSET_OF_A;
+    		a[idx] = e.getValue();
+    	}
+    	return a;
     }
 
 }
