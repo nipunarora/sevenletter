@@ -2,7 +2,6 @@ package seven.g1;
 
 import java.util.*;
 
-import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
 import seven.g1.datamining.LetterMine;
@@ -59,9 +58,6 @@ public class G1Player implements Player{
 	static final long base_probability_counters[];
 
 	static {
-		BasicConfigurator.configure();
-		Logger.getLogger("seven.g1.datamining").setLevel(org.apache.log4j.Level.DEBUG);
-		Logger.getLogger(G1Player.class).setLevel(org.apache.log4j.Level.DEBUG);
 		mine.buildIndex();
 		mine.aPriori(0.000001);
 		initDict();
@@ -174,7 +170,8 @@ public class G1Player implements Player{
     	refstate=secretstate;
     	++current_auction;
     	l.debug("Player " + player_id +" on bidding round " + current_auction + " of " + total_auctions);
-
+    	int letters_needed = (7 - openletters.size());
+    	double bids_per_letter_remaining = letters_needed > 0 ? (total_auctions - current_auction + 1)/letters_needed : 0;
        	char bidChar = bidLetter.getAlphabet();
     	/*if(openletters.isEmpty()){
     		String s= "ESAIRONLT";
@@ -224,11 +221,13 @@ public class G1Player implements Player{
     	// does this letter help us?
     	boolean matchfound = !couldreach.isEmpty();
 
-    	double percentile= percentile(open,bidLetter.getAlphabet());
+    	double percentile = percentile(open,bidLetter.getAlphabet());
     	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
 
     	if(matchfound){  // there is a seven-letter we can reach
-    		if(kept_fraction > 0.4)
+    		double cutoff = 0.4;
+    		if (2 > bids_per_letter_remaining) cutoff = 0;
+    		if(6 == openletters.size() || kept_fraction > cutoff)
     			return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
 
     		//return bidLetter.getValue()*2;
@@ -254,22 +253,22 @@ public class G1Player implements Player{
 	private HashMap<Character,Double> calcProb(Word o){
 		HashMap<Character,Double> prob= new HashMap<Character,Double>();
 		for(int i=0; i<26;i++){
-		char bidChar= (char)(i+65);
-		Word open= new Word(o.getWord().concat(String.valueOf(bidChar)));
-		int alpha=i;
+			char bidChar= (char)(i+65);
+			Word open= new Word(o.getWord().concat(String.valueOf(bidChar)));
+			int alpha=i;
 			if(letterBag.count(bidChar)>0){
 				for(Word current : sevenletterlist ) {
-		    		if (current.issubsetof(open)) {
-		    			Word diff = current.subtract(open);
-		    			// if we could use this letter, and won't also need more of it than exist...
-		    			if (0 < diff.countKeep[alpha] && diff.countKeep[alpha] <= letterBag.count(bidChar)) {
-		    				// then go ahead and bid
-		    				double tempProb= wordProbability(open, current);
-		    				prob.put(Character.valueOf(bidChar), tempProb);
-		    				l.trace("bidChar "+ String.valueOf(bidChar)+ " Probability" + tempProb);
-		    			}
-		    		}
-		    	}
+					if (current.issubsetof(open)) {
+						Word diff = current.subtract(open);
+						// if we could use this letter, and won't also need more of it than exist...
+						if (0 < diff.countKeep[alpha] && diff.countKeep[alpha] <= letterBag.count(bidChar)) {
+							// then go ahead and bid
+							double tempProb= wordProbability(open, current);
+							prob.put(Character.valueOf(bidChar), tempProb);
+							l.trace("bidChar "+ String.valueOf(bidChar)+ " Probability" + tempProb);
+						}
+					}
+				}
 			}
 		}
 		return prob;
