@@ -29,7 +29,7 @@ public class G1Player implements Player{
 	/**
 	 *
 	 * @author Manuel
-	 * Class to keep some information about other players (id, letters in possesion, and current score)
+	 * Class to keep some information about other players (id, letters in possession, and current score)
 	 * canGet7LetterWord
 	 */
 	private class TrackedPlayer{
@@ -94,6 +94,7 @@ public class G1Player implements Player{
 	int current_auction = 0;
 	int total_auctions = 0;
 	int score;
+	int cumulative_bid = 0;
 	ArrayList<TrackedPlayer> otherPlayers;
 
 	private Logger l = Logger.getLogger(this.getClass());
@@ -137,6 +138,7 @@ public class G1Player implements Player{
 			openletters.addAll(secretstate.getSecretLetters());
 			total_auctions = (7 - openletters.size()) * PlayerList.size();
 			score = secretstate.getScore();
+			cumulative_bid = 0;
 
 
 			if(otherPlayers == null){
@@ -226,11 +228,13 @@ public class G1Player implements Player{
     	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
 
     	if(matchfound){  // there is a seven-letter we can reach
-    		if(percentile>0.75)
-    		return bidLetter.getValue()*2;
-    		else if(percentile>0&&percentile<=0.75)
-    			return bidLetter.getValue();
-    		else if(percentile ==0)
+    		if(percentile>0.4)
+    			return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
+
+    		//return bidLetter.getValue()*2;
+    		//else if(percentile>0&&percentile<=0.75)
+    			//return bidLetter.getValue();
+    		else //if(percentile == 0)
     			return 0;
     	}
     	l.debug(bidChar + " is not useful to us. Checking if we can reach a 7 letter word");
@@ -253,21 +257,20 @@ public class G1Player implements Player{
 		char bidChar= (char)(i+65);
 		Word open= new Word(o.getWord().concat(String.valueOf(bidChar)));
 		int alpha=i;
-		if(letterBag.count(bidChar)>0){
-		for(Word current : sevenletterlist ) {
-    		if (current.issubsetof(open)) {
-    			Word diff = current.subtract(open);
-    			// if we could use this letter, and won't also need more of it than exist...
-    			if (0 < diff.countKeep[alpha] && diff.countKeep[alpha] <= letterBag.count(bidChar)) {
-    				// then go ahead and bid
-    				double tempProb= wordProbability(open, current);
-    				prob.put(Character.valueOf(bidChar), tempProb);
-    				l.trace("bidChar "+ String.valueOf(bidChar)+ " Probability" + tempProb);
-    			}
-    		}
-    	}
-
-		}
+			if(letterBag.count(bidChar)>0){
+				for(Word current : sevenletterlist ) {
+		    		if (current.issubsetof(open)) {
+		    			Word diff = current.subtract(open);
+		    			// if we could use this letter, and won't also need more of it than exist...
+		    			if (0 < diff.countKeep[alpha] && diff.countKeep[alpha] <= letterBag.count(bidChar)) {
+		    				// then go ahead and bid
+		    				double tempProb= wordProbability(open, current);
+		    				prob.put(Character.valueOf(bidChar), tempProb);
+		    				l.trace("bidChar "+ String.valueOf(bidChar)+ " Probability" + tempProb);
+		    			}
+		    		}
+		    	}
+			}
 		}
 		return prob;
 	}
@@ -281,12 +284,12 @@ public class G1Player implements Player{
 		int lesscounter=0;
 		if(prob.containsKey(bidChar)){
 			while( it.hasNext()){
-			if(prob.get(Character.valueOf(bidChar))>(Double)it.next())
-				lesscounter++;
+				if(prob.get(Character.valueOf(bidChar))>(Double)it.next())
+					lesscounter++;
 			}
 		}
 		if(prob.size()>0){
-		return (double)lesscounter/prob.size();
+			return (double)lesscounter/prob.size();
 		}
 		else
 			return 0.00;
@@ -297,6 +300,7 @@ public class G1Player implements Player{
 		assert(0 <= letterBag.decrement(c));
 		assert(0 <= letterRack.increment(c));
 		score -= amount;
+		cumulative_bid += amount;
 	}
 
 	private int[] hypotheticallosses(char c) {
