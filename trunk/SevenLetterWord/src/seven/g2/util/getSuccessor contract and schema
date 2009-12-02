@@ -1,0 +1,12 @@
+Word:
+PK, word, letters, length, score
+
+LetterCol:
+PK, terminal, letterIndex, oc_1, oc_2,... a,b,c...
+
+Letter_word:
+Word_PK, Letter_PK
+
+generateSuccessors(Char next, int[] left)
+Returns: All words with at least the current string that are possible in one set, also
+all the words with at least the current string plus char next
