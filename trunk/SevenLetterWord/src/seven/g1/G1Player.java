@@ -192,7 +192,7 @@ public class G1Player implements Player{
     	String s = String.valueOf(c);
     	Word open = new Word(s);
 
-    	LetterSet lset = (LetterSet) mine.getCachedItemSet(terms);
+    	LetterSet lset = getLetterSet(terms);
     	//Collection<Word> currenttargets = getReachableSevenLetterWords(lset);
     	Collection<Integer> currenttargets;
     	Collection<Integer> couldreachiflost;
@@ -210,19 +210,17 @@ public class G1Player implements Player{
 
     	String[] extended_terms = Arrays.copyOf(terms, terms.length + 1);
     	extended_terms[terms.length] = Character.toString(bidChar);
-    	lset = (LetterSet)mine.getCachedItemSet(extended_terms);
+    	lset = getLetterSet(extended_terms);
     	Collection<Integer> couldreach = getTargetIndices(lset, new int[0]);
     	l.debug("Acquiring " + bidChar + " limits us to " + couldreach.size() + " seven-letter words");
-    	long currsum = 0;
-    	long potentialsum = 0;
-    	for (int i : currenttargets ) {
-    		currsum += word_draw_possibilities[i];
-    	}
-    	for (int i : couldreach) {
-    		potentialsum += word_draw_possibilities[i];
-    	}
+    	long currsum = sumTargetPossibilities(currenttargets);
+    	long potentialsum = sumTargetPossibilities(couldreach);
+    	//long iflost = sumTargetPossibilities(couldreachiflost);
+    	long penalty = lossPenalty(currenttargets,bidChar);
     	double kept_fraction = (double) potentialsum / (double) currsum;
     	l.debug("Current p-sum: " + currsum + "; kept fraction " + kept_fraction);
+    	double lost_fraction = (double) penalty/(double) currsum;
+    	l.debug("Fraction forgone if lost: " + lost_fraction);
 
     	double percentile = percentile(open,bidLetter.getAlphabet());
     	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
@@ -230,15 +228,15 @@ public class G1Player implements Player{
     	if(!couldreach.isEmpty()){  // there is a seven-letter word we can reach with this letter
     		double cutoff = 0.4;
     		// if we're low on options, take anything that doesn't hurt us
-    		if (2 > bids_per_letter_remaining) cutoff = 0;
-    		if(6 == openletters.size() || kept_fraction > cutoff)
+    		if (2 > bids_per_letter_remaining) {
+    			l.debug("Using lower acceptability threshold: bid ratio is " + bids_per_letter_remaining);
+    			cutoff = 0;
+    		}
+    		if(6 == openletters.size() || kept_fraction > cutoff) {
     			return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
-
-    		//return bidLetter.getValue()*2;
-    		//else if(percentile>0&&percentile<=0.75)
-    			//return bidLetter.getValue();
-    		else //if(percentile == 0)
+    		} else {
     			return 0;
+    		}
     	} else if (currenttargets.isEmpty()) { // there is no reachable 7-letter
     		int value = scoreIncrementIfAcquire(bidLetter);
     		l.debug("Cannot reach 7, bid "+value+" on "+bidChar);
@@ -248,6 +246,76 @@ public class G1Player implements Player{
     		return 0;
     	}
     }
+
+	/**
+	 * @param terms
+	 * @return
+	 */
+	private static LetterSet getLetterSet(String[] terms) {
+		LetterSet lset = (LetterSet) mine.getCachedItemSet(terms);
+		return lset;
+	}
+
+	private static LetterSet getLetterSet(char c) {
+		return getLetterSet(new String[] {Character.toString(c)});
+	}
+
+	private static Word getWord(int word_id) {
+		return wordlist.get(word_id);
+	}
+
+	private static int getCharIndex(char c) {
+		return Integer.valueOf(c) - OFFSET_OF_A;
+	}
+
+	/**
+	 * @param currenttargets
+	 * @param bidChar
+	 * @return
+	 */
+	private long lossPenalty(Collection<Integer> currenttargets, char bidChar) {
+		l.debug("Calculating lost probability for letter " + bidChar);
+		long total = 0;
+		LetterSet set = getLetterSet(bidChar);
+		int[] bagarray = arrayFromMap(letterBag);
+		int[] rackarray = arrayFromMap(letterRack);
+		// alter bag array to assume that this letter is gone, but not in our rack
+		int charIndex = getCharIndex(bidChar);
+		bagarray[charIndex] -= 1;
+		assert(bagarray[charIndex] >= 0);
+		if (null != set) {
+			int[] word_ids = set.getTransactions();
+			// this cries out to be refactored
+			// twice
+			boolean[] affected_word = new boolean[wordlist.size()];
+			for (int wordID : word_ids) {
+				affected_word[wordID] = true;
+			}
+			for (int wordID : currenttargets) {
+				if (affected_word[wordID]) {
+					Word w = getWord(wordID);
+					long new_poss = w.drawPossibilities(bagarray, rackarray);
+					long difference = word_draw_possibilities[wordID] - new_poss;
+					assert(difference >= 0);
+					l.trace("Difference for " + w.word + " is " + difference);
+					total += difference;
+				}
+			}
+		}
+		return total;
+	}
+
+	/**
+	 * @param target_indices
+	 * @return
+	 */
+	private long sumTargetPossibilities(Collection<Integer> target_indices) {
+		long currsum = 0;
+    	for (int i : target_indices ) {
+    		currsum += word_draw_possibilities[i];
+    	}
+		return currsum;
+	}
 
 
 	private HashMap<Character,Double> calcProb(Word o){
@@ -309,7 +377,7 @@ public class G1Player implements Player{
 		for (int i = 0; i < prevCount; i++) {
 			terms[i] = Character.toString(c);
 		}
-		LetterSet set = (LetterSet) mine.getCachedItemSet(terms);
+		LetterSet set = getLetterSet(terms);
 		if (null != set) {
 			wordsfound = set.getTransactions();
 		} else {
@@ -389,7 +457,7 @@ public class G1Player implements Player{
 				lost(LastBid);
 			}
 			char c = LastBid.getTargetLetter().getAlphabet();
-			LetterSet set = (LetterSet) mine.getCachedItemSet(new String[] {Character.toString(c)});
+			LetterSet set = getLetterSet(c);
 			int bagarray[] = arrayFromMap(letterBag);
 			int rackarray[] = arrayFromMap(letterRack);
 			// update words that contain this letter
