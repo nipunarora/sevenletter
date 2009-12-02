@@ -56,18 +56,20 @@ public class G1Player implements Player{
 	// initialized to correct size in static block, below
 	static final boolean[] is_seven_letter;
 	static final long base_probability_counters[];
+	static final int TOTAL_WORDS;
 
 	static {
 		mine.buildIndex();
 		mine.aPriori(0.000001);
 		initDict();
-		base_probability_counters = new long[wordlist.size()];
-		is_seven_letter = new boolean[wordlist.size()];
+		TOTAL_WORDS = wordlist.size();
+		base_probability_counters = new long[TOTAL_WORDS];
+		is_seven_letter = new boolean[TOTAL_WORDS];
 
 		Word tmp = new Word(SCRABBLE_LETTERS_EN_US);
 		int[] startbag = tmp.countKeep;
-		for (int i = 0; i < wordlist.size(); i++) {
-			Word w = wordlist.get(i);
+		for (int i = 0; i < TOTAL_WORDS; i++) {
+			Word w = getWord(i);
 			is_seven_letter[i] = (7 == w.length);
 			base_probability_counters[i] = w.drawPossibilities(startbag);
 		}
@@ -94,7 +96,7 @@ public class G1Player implements Player{
 	ArrayList<TrackedPlayer> otherPlayers;
 
 	private Logger l = Logger.getLogger(this.getClass());
-	private boolean[] reachable = new boolean[wordlist.size()];
+	private boolean[] reachable = new boolean[TOTAL_WORDS];
 	private long[] word_draw_possibilities = Arrays.copyOf(base_probability_counters, base_probability_counters.length);
 
 
@@ -287,7 +289,7 @@ public class G1Player implements Player{
 			int[] word_ids = set.getTransactions();
 			// this cries out to be refactored
 			// twice
-			boolean[] affected_word = new boolean[wordlist.size()];
+			boolean[] affected_word = new boolean[TOTAL_WORDS];
 			for (int wordID : word_ids) {
 				affected_word[wordID] = true;
 			}
@@ -467,7 +469,7 @@ public class G1Player implements Player{
 			for (int idx : set.getTransactions()) {
 				if (reachable[idx]) {
 					ctr++;
-					long newscore =  wordlist.get(idx).drawPossibilities(bagarray, rackarray);
+					long newscore =  getWord(idx).drawPossibilities(bagarray, rackarray);
 					if (newscore != word_draw_possibilities[idx]) {
 						changed++;
 						word_draw_possibilities[idx] = newscore;
@@ -539,7 +541,7 @@ public class G1Player implements Player{
 	private Collection<Word> getReachableSevenLetterWords(LetterSet lset, int[] wouldlose) {
 		ArrayList<Word> found = new ArrayList<Word>();
 		for (Integer i : getTargetIndices(lset, wouldlose)) {
-			found.add(wordlist.get(i));
+			found.add(getWord(i));
 		}
     	return found;
 	}
@@ -547,12 +549,12 @@ public class G1Player implements Player{
 	private List<Integer> emptyRackTargets(int[] wouldlose) {
 		ArrayList<Integer> found = new ArrayList<Integer>();
 
-		boolean temp_exclude[] = new boolean[wordlist.size()];
+		boolean temp_exclude[] = new boolean[TOTAL_WORDS];
 		if (null != wouldlose) {
 			for (int i : wouldlose) temp_exclude[i] = true;
 		}
 
-		for (int wordID = 0; wordID < wordlist.size(); wordID++) {
+		for (int wordID = 0; wordID < TOTAL_WORDS; wordID++) {
 			if (reachable[wordID] && !temp_exclude[wordID] && is_seven_letter[wordID]) {
 				found.add(wordID);
 			}
@@ -563,7 +565,7 @@ public class G1Player implements Player{
 	private List<Integer> getTargetIndices(LetterSet lset, int[] wouldlose) {
 		ArrayList<Integer> found = new ArrayList<Integer>();
 
-		boolean temp_exclude[] = new boolean[wordlist.size()];
+		boolean temp_exclude[] = new boolean[TOTAL_WORDS];
 		if (null != wouldlose) {
 			for (int i : wouldlose) temp_exclude[i] = true;
 		}
