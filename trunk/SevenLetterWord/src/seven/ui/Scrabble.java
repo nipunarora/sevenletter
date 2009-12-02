@@ -81,6 +81,7 @@ public class Scrabble {
              case 'Q': score = 10;break;
              case 'Z': score = 10;break;
              case '*': score = 0;break;
+             default: throw new IllegalArgumentException("no score for " + letter);
 
          }
 

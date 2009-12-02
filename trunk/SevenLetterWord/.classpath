@@ -2,5 +2,12 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/PPS Simulators/lib/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="/PPS Simulators/src/seven/g2"/>
+	<classpathentry kind="lib" path="/PPS Simulators/src/seven/g3"/>
+	<classpathentry kind="lib" path="/PPS Simulators/src/seven/g4"/>
+	<classpathentry kind="lib" path="/PPS Simulators/src/seven/g5"/>
+	<classpathentry kind="lib" path="src/seven/g2/util/sqlite-jdbc-3.6.19.jar"/>
+	<classpathentry kind="lib" path="src/seven/g2/util/sqlitejdbc-v056.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
