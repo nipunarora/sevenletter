@@ -54,19 +54,26 @@ public class G1Player implements Player{
 	static final LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
 	static final ArrayList<Word> wordlist = new ArrayList<Word>();
 	static final ArrayList<Word> sevenletterlist = new ArrayList<Word>();
+	// initialized to correct size in static block, below
+	static final boolean[] is_seven_letter;
 	static final long base_probability_counters[];
 
 	static {
 		BasicConfigurator.configure();
+		Logger.getLogger("seven.g1.datamining").setLevel(org.apache.log4j.Level.ERROR);
 		Logger.getLogger(G1Player.class).setLevel(org.apache.log4j.Level.DEBUG);
 		mine.buildIndex();
 		mine.aPriori(0.000001);
 		initDict();
 		base_probability_counters = new long[wordlist.size()];
+		is_seven_letter = new boolean[wordlist.size()];
+
 		Word tmp = new Word(SCRABBLE_LETTERS_EN_US);
 		int[] startbag = tmp.countKeep;
 		for (int i = 0; i < wordlist.size(); i++) {
-			base_probability_counters[i] = wordlist.get(i).drawPossibilities(startbag);
+			Word w = wordlist.get(i);
+			is_seven_letter[i] = (7 == w.length);
+			base_probability_counters[i] = w.drawPossibilities(startbag);
 		}
 	}
 
@@ -187,14 +194,29 @@ public class G1Player implements Player{
     	Word open = new Word(s);
 
     	LetterSet lset = (LetterSet) mine.getCachedItemSet(terms);
-    	Collection<Word> currenttargets = getReachableSevenLetterWords(lset);
+    	//Collection<Word> currenttargets = getReachableSevenLetterWords(lset);
+    	Collection<Integer> currenttargets = getTargetIndices(lset, new int[0]);
     	l.debug("From " + s + " we can reach " + currenttargets.size() + " seven-letter words");
+    	int[] wouldlose = hypotheticallosses(bidChar);
+    	Collection<Integer> couldreachiflost = getTargetIndices(lset, wouldlose);
+    	l.debug("If we lose on " + bidChar + " we can reach " + couldreachiflost.size() + " seven-letter words");
 
     	String[] extended_terms = Arrays.copyOf(terms, terms.length + 1);
     	extended_terms[terms.length] = Character.toString(bidChar);
     	lset = (LetterSet)mine.getCachedItemSet(extended_terms);
-    	Collection<Word> couldreach = getReachableSevenLetterWords(lset);
+    	Collection<Integer> couldreach = getTargetIndices(lset, new int[0]);
     	l.debug("Acquiring " + bidChar + " limits us to " + couldreach.size() + " seven-letter words");
+    	long currsum = 0;
+    	long potentialsum = 0;
+    	for (int i : currenttargets ) {
+    		currsum += word_draw_possibilities[i];
+    	}
+    	for (int i : couldreach) {
+    		potentialsum += word_draw_possibilities[i];
+    	}
+    	double kept_fraction = (double) potentialsum / (double) currsum;
+    	l.debug("Current p-sum: " + currsum + "; kept fraction " + kept_fraction);
+
 
 
     	// does this letter help us?
@@ -223,6 +245,7 @@ public class G1Player implements Player{
     		return value;
     	}
     }
+
 
 	private HashMap<Character,Double> calcProb(Word o){
 		HashMap<Character,Double> prob= new HashMap<Character,Double>();
@@ -276,25 +299,34 @@ public class G1Player implements Player{
 		score -= amount;
 	}
 
-	private void lost(PlayerBids bid) {
-		Letter letterLost = bid.getTargetLetter();
-		Character c = letterLost.getAlphabet();
+	private int[] hypotheticallosses(char c) {
+		int wordsfound[];
 		int prevCount = letterBag.count(c) + letterRack.count(c);
-		letterBag.decrement(c);
 		String[] terms = new String[prevCount];
 		for (int i = 0; i < prevCount; i++) {
-			terms[i] = c.toString();
+			terms[i] = Character.toString(c);
 		}
 		LetterSet set = (LetterSet) mine.getCachedItemSet(terms);
 		if (null != set) {
-			int wordList[] = set.getTransactions();
-			l.debug(
-					String.format("Marking %d words as unreachable (%d x '%c')",
-						new Object[]{ wordList.length, prevCount , c})
-			);
-			for (int wordID : wordList) {
-				this.reachable[wordID] = false;
-			}
+			wordsfound = set.getTransactions();
+		} else {
+			wordsfound = new int[0];
+		}
+		return wordsfound;
+	}
+
+	private void lost(PlayerBids bid) {
+		Letter letterLost = bid.getTargetLetter();
+		Character c = letterLost.getAlphabet();
+		int[] lostwords = hypotheticallosses(c);
+		letterBag.decrement(c);
+
+		l.debug(
+				String.format("Marking %d words as unreachable (too few of '%c')",
+						new Object[]{ lostwords.length, c})
+		);
+		for (int wordID : lostwords) {
+			this.reachable[wordID] = false;
 		}
 
 		//Update information about the player who won the bid
@@ -433,19 +465,32 @@ public class G1Player implements Player{
     }
 
 
-    private Collection<Word> getReachableSevenLetterWords(LetterSet lset) {
-    	ArrayList<Word> found = new ArrayList<Word>();
+	private Collection<Word> getReachableSevenLetterWords(LetterSet lset, int[] wouldlose) {
+		ArrayList<Word> found = new ArrayList<Word>();
+		for (Integer i : getTargetIndices(lset, wouldlose)) {
+			found.add(wordlist.get(i));
+		}
+    	return found;
+	}
+
+	private List<Integer> getTargetIndices(LetterSet lset, int[] wouldlose) {
+		ArrayList<Integer> found = new ArrayList<Integer>();
+
+		boolean temp_exclude[] = new boolean[wordlist.size()];
+		for (int i : wouldlose) temp_exclude[i] = true;
+
     	if (null != lset) {
     		for (int wordID : lset.getTransactions()) {
-    			if (reachable[wordID]) {
-    				Word w = wordlist.get(wordID);
-    				if (7 == w.length) {
-    					found.add(w);
-    				}
+    			if (reachable[wordID] && !temp_exclude[wordID] && is_seven_letter[wordID]) {
+    				found.add(wordID);
     			}
     		}
     	}
-    	return found;
+		return found;
+	}
+
+    private Collection<Word> getReachableSevenLetterWords(LetterSet lset) {
+    	return getReachableSevenLetterWords(lset, new int[0]);
     }
 
     /**
