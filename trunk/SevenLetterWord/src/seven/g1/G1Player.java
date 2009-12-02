@@ -60,7 +60,7 @@ public class G1Player implements Player{
 
 	static {
 		BasicConfigurator.configure();
-		Logger.getLogger("seven.g1.datamining").setLevel(org.apache.log4j.Level.ERROR);
+		Logger.getLogger("seven.g1.datamining").setLevel(org.apache.log4j.Level.DEBUG);
 		Logger.getLogger(G1Player.class).setLevel(org.apache.log4j.Level.DEBUG);
 		mine.buildIndex();
 		mine.aPriori(0.000001);
@@ -176,14 +176,14 @@ public class G1Player implements Player{
     	l.debug("Player " + player_id +" on bidding round " + current_auction + " of " + total_auctions);
 
        	char bidChar = bidLetter.getAlphabet();
-    	if(openletters.isEmpty()){
+    	/*if(openletters.isEmpty()){
     		String s= "ESAIRONLT";
     		if(s.contains(Character.toString(bidChar))) {
     			return (int)(bidLetter.getValue()*3)/2;
     		} else {
     			return (int)(bidLetter.getValue()*2)/3;
     		}
-    	}
+    	}*/
 
     	char[] c= new char[openletters.size()];
     	String[] terms = new String[openletters.size()];
@@ -228,7 +228,7 @@ public class G1Player implements Player{
     	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
 
     	if(matchfound){  // there is a seven-letter we can reach
-    		if(percentile>0.4)
+    		if(kept_fraction > 0.4)
     			return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
 
     		//return bidLetter.getValue()*2;
