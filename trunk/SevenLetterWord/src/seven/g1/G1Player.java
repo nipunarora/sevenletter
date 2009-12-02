@@ -109,7 +109,11 @@ public class G1Player implements Player{
 		l.trace("reachable has length " + reachable.length);
 	}
 
-	private CountMap<Character> newBag() {
+    /*
+     * Static convenience methods
+     */
+
+	private static CountMap<Character> newBag() {
 		CountMap<Character> bag = new CountMap<Character>();
 		for (int i = 0; i < SCRABBLE_LETTERS_EN_US.length(); i++) {
 			char c = SCRABBLE_LETTERS_EN_US.charAt(i);
@@ -117,6 +121,41 @@ public class G1Player implements Player{
 		}
 		return bag;
 	}
+
+	private static int[] arrayFromMap(CountMap<Character> m) {
+		int[] a = new int[26]; // values initialized to 0
+		for (Map.Entry<Character,Integer> e : m.entrySet()) {
+			int idx = Integer.valueOf(e.getKey()) - OFFSET_OF_A;
+			a[idx] = e.getValue();
+		}
+		return a;
+	}
+
+	/**
+	 * @param terms
+	 * @return
+	 */
+	private static LetterSet getLetterSet(String[] terms) {
+		LetterSet lset = (LetterSet) mine.getCachedItemSet(terms);
+		return lset;
+	}
+
+	private static LetterSet getLetterSet(char c) {
+		return getLetterSet(new String[] {Character.toString(c)});
+	}
+
+	private static Word getWord(int word_id) {
+		return wordlist.get(word_id);
+	}
+
+	private static int getCharIndex(char c) {
+		return Integer.valueOf(c) - OFFSET_OF_A;
+	}
+
+	/* Interface required methods
+	 * (non-Javadoc)
+	 * @see seven.ui.Player#Register()
+	 */
 
 	public void Register() {
         //throw new UnsupportedOperationException("Not supported yet.");
@@ -249,27 +288,117 @@ public class G1Player implements Player{
     	}
     }
 
-	/**
-	 * @param terms
-	 * @return
+
+
+	/*
+	 * Bookkeeping methods for bid tracking
 	 */
-	private static LetterSet getLetterSet(String[] terms) {
-		LetterSet lset = (LetterSet) mine.getCachedItemSet(terms);
-		return lset;
+	/**
+	 * @param bidList
+	 */
+	private void checkBidSuccess(ArrayList<PlayerBids> bidList) {
+		if(!bidList.isEmpty()){
+			PlayerBids LastBid= bidList.get(bidList.size()-1);
+			Letter lastletter = LastBid.getTargetLetter();
+			int amountBid = LastBid.getWinAmmount();
+			if(player_id == LastBid.getWinnerID()) {
+				won(lastletter, amountBid);
+				l.debug("We acquired letter " + lastletter.getAlphabet()
+						+ " for " + amountBid);
+				openletters.add(LastBid.getTargetLetter());
+			} else {
+				lost(LastBid);
+			}
+			char c = LastBid.getTargetLetter().getAlphabet();
+			LetterSet set = getLetterSet(c);
+			int bagarray[] = arrayFromMap(letterBag);
+			int rackarray[] = arrayFromMap(letterRack);
+			// update words that contain this letter
+			l.debug("Updating counters for " + set.getSupport() + " words");
+			int ctr = 0;
+			int changed = 0;
+			for (int idx : set.getTransactions()) {
+				if (reachable[idx]) {
+					ctr++;
+					long newscore =  getWord(idx).drawPossibilities(bagarray, rackarray);
+					if (newscore != word_draw_possibilities[idx]) {
+						changed++;
+						word_draw_possibilities[idx] = newscore;
+					}
+				}
+			}
+			l.debug("Updated counters for " +changed + " out of " + ctr + " words");
+
+    	}
 	}
 
-	private static LetterSet getLetterSet(char c) {
-		return getLetterSet(new String[] {Character.toString(c)});
+	private void won(Letter letterWon, int amount) {
+		Character c = letterWon.getAlphabet();
+		assert(0 <= letterBag.decrement(c));
+		assert(0 <= letterRack.increment(c));
+		score -= amount;
+		cumulative_bid += amount;
 	}
 
-	private static Word getWord(int word_id) {
-		return wordlist.get(word_id);
+	private void lost(PlayerBids bid) {
+		Letter letterLost = bid.getTargetLetter();
+		Character c = letterLost.getAlphabet();
+		int[] lostwords = hypotheticallosses(c);
+		letterBag.decrement(c);
+
+		l.debug(
+				String.format("Marking %d words as unreachable (too few of '%c')",
+						new Object[]{ lostwords.length, c})
+		);
+		for (int wordID : lostwords) {
+			this.reachable[wordID] = false;
+		}
+
+		//Update information about the player who won the bid
+		TrackedPlayer adversary = otherPlayers.get(bid.getWinnerID());
+		adversary.score -= bid.getWinAmmount();
+		adversary.letterRack.increment(c);
+		adversary.openLetters.add(letterLost);
 	}
 
-	private static int getCharIndex(char c) {
-		return Integer.valueOf(c) - OFFSET_OF_A;
-	}
+	/* Interface required method #3
+	 * (non-Javadoc)
+	 * @see seven.ui.Player#returnWord()
+	 */
+    public String returnWord() {
+    	l.debug("Player " + player_id  + " checking bid for final round: " + RefList.size());
+    	checkBidSuccess(RefList);
 
+    	char[] c= new char[openletters.size()];
+    	for(int i=0; i<openletters.size();i++){
+    		 c[i]= openletters.get(i).getAlphabet();
+    	}
+
+    	String s = String.valueOf(c);
+    	Word open= new Word(s);
+    	l.info("Open Letters are: [" + s + "]");
+
+    	int bestscore = 0;
+    	String bestword = "";
+    	for (Word candidate : wordlist) {
+    		if(open.issubsetof(candidate)){
+    			if (candidate.score > bestscore) {
+    				bestscore = candidate.score;
+    				bestword = candidate.getWord();
+    				l.trace("New best word: " + bestword + " (" + bestscore + ")");
+    			}
+    		}
+    	}
+
+    	l.info(bestword);
+    	score += bestscore;
+        // tell "bid" that we are about to begin a new round
+    	first = true;
+    	return bestword;
+    }
+    /*
+     * Bid value calculation methods.
+     */
 	/**
 	 * @param currenttargets
 	 * @param bidChar
@@ -319,6 +448,22 @@ public class G1Player implements Player{
 		return currsum;
 	}
 
+	private int[] hypotheticallosses(char c) {
+		int wordsfound[];
+		int prevCount = letterBag.count(c) + letterRack.count(c);
+		String[] terms = new String[prevCount];
+		for (int i = 0; i < prevCount; i++) {
+			terms[i] = Character.toString(c);
+		}
+		LetterSet set = getLetterSet(terms);
+		if (null != set) {
+			wordsfound = set.getTransactions();
+		} else {
+			wordsfound = new int[0];
+		}
+		return wordsfound;
+	}
+
 
 	private HashMap<Character,Double> calcProb(Word o){
 		HashMap<Character,Double> prob= new HashMap<Character,Double>();
@@ -364,51 +509,6 @@ public class G1Player implements Player{
 			return 0.00;
 	}
 
-	private void won(Letter letterWon, int amount) {
-		Character c = letterWon.getAlphabet();
-		assert(0 <= letterBag.decrement(c));
-		assert(0 <= letterRack.increment(c));
-		score -= amount;
-		cumulative_bid += amount;
-	}
-
-	private int[] hypotheticallosses(char c) {
-		int wordsfound[];
-		int prevCount = letterBag.count(c) + letterRack.count(c);
-		String[] terms = new String[prevCount];
-		for (int i = 0; i < prevCount; i++) {
-			terms[i] = Character.toString(c);
-		}
-		LetterSet set = getLetterSet(terms);
-		if (null != set) {
-			wordsfound = set.getTransactions();
-		} else {
-			wordsfound = new int[0];
-		}
-		return wordsfound;
-	}
-
-	private void lost(PlayerBids bid) {
-		Letter letterLost = bid.getTargetLetter();
-		Character c = letterLost.getAlphabet();
-		int[] lostwords = hypotheticallosses(c);
-		letterBag.decrement(c);
-
-		l.debug(
-				String.format("Marking %d words as unreachable (too few of '%c')",
-						new Object[]{ lostwords.length, c})
-		);
-		for (int wordID : lostwords) {
-			this.reachable[wordID] = false;
-		}
-
-		//Update information about the player who won the bid
-		TrackedPlayer adversary = otherPlayers.get(bid.getWinnerID());
-		adversary.score -= bid.getWinAmmount();
-		adversary.letterRack.increment(c);
-		adversary.openLetters.add(letterLost);
-	}
-
 	/**
 	 * Given the current state of the bag, what is the probability that the next draw
 	 * will be this character?
@@ -442,102 +542,9 @@ public class G1Player implements Player{
 
 	}
 
-	/**
-	 * @param bidList
+	/*
+	 * target-management functions
 	 */
-	private void checkBidSuccess(ArrayList<PlayerBids> bidList) {
-		if(!bidList.isEmpty()){
-			PlayerBids LastBid= bidList.get(bidList.size()-1);
-			Letter lastletter = LastBid.getTargetLetter();
-			int amountBid = LastBid.getWinAmmount();
-			if(player_id == LastBid.getWinnerID()) {
-				won(lastletter, amountBid);
-				l.debug("We acquired letter " + lastletter.getAlphabet()
-						+ " for " + amountBid);
-				openletters.add(LastBid.getTargetLetter());
-			} else {
-				lost(LastBid);
-			}
-			char c = LastBid.getTargetLetter().getAlphabet();
-			LetterSet set = getLetterSet(c);
-			int bagarray[] = arrayFromMap(letterBag);
-			int rackarray[] = arrayFromMap(letterRack);
-			// update words that contain this letter
-			l.debug("Updating counters for " + set.getSupport() + " words");
-			int ctr = 0;
-			int changed = 0;
-			for (int idx : set.getTransactions()) {
-				if (reachable[idx]) {
-					ctr++;
-					long newscore =  getWord(idx).drawPossibilities(bagarray, rackarray);
-					if (newscore != word_draw_possibilities[idx]) {
-						changed++;
-						word_draw_possibilities[idx] = newscore;
-					}
-				}
-			}
-			l.debug("Updated counters for " +changed + " out of " + ctr + " words");
-
-    	}
-	}
-
-    public String returnWord() {
-    	l.debug("Player " + player_id  + " checking bid for final round: " + RefList.size());
-    	checkBidSuccess(RefList);
-
-    	char[] c= new char[openletters.size()];
-    	for(int i=0; i<openletters.size();i++){
-    		 c[i]= openletters.get(i).getAlphabet();
-    	}
-
-    	String s = String.valueOf(c);
-    	Word open= new Word(s);
-    	l.info("Open Letters are: [" + s + "]");
-
-    	int bestscore = 0;
-    	String bestword = "";
-    	for (Word candidate : wordlist) {
-    		if(open.issubsetof(candidate)){
-    			if (candidate.score > bestscore) {
-    				bestscore = candidate.score;
-    				bestword = candidate.getWord();
-    				l.trace("New best word: " + bestword + " (" + bestscore + ")");
-    			}
-    		}
-    	}
-
-    	l.info(bestword);
-    	score += bestscore;
-        // tell "bid" that we are about to begin a new round
-    	first = true;
-    	return bestword;
-    }
-
-    private static void initDict()
-    {
-    	Logger l = Logger.getLogger(G1Player.class);
-        try{
-        	Iterator<String> words = mine.getWordIterator();
-        	while (words.hasNext()) {
-                String word = words.next();
-
-                Word tempword= new Word(word);
-                l.trace(word + ": " + tempword.score);
-                // System.out.println("reached 2");
-                if(tempword.length==7){
-                	sevenletterlist.add(tempword);
-                }
-                wordlist.add(tempword);
-            }
-
-        }
-        catch(Exception e)
-        {
-            l.fatal("Could not load dictionary!",e);
-        }
-    }
-
-
 	private Collection<Word> getReachableSevenLetterWords(LetterSet lset, int[] wouldlose) {
 		ArrayList<Word> found = new ArrayList<Word>();
 		for (Integer i : getTargetIndices(lset, wouldlose)) {
@@ -626,13 +633,32 @@ public class G1Player implements Player{
     	return bestscore2 - bestscore1;
     }
 
-    private static int[] arrayFromMap(CountMap<Character> m) {
-    	int[] a = new int[26]; // values initialized to 0
-    	for (Map.Entry<Character,Integer> e : m.entrySet()) {
-    		int idx = Integer.valueOf(e.getKey()) - OFFSET_OF_A;
-    		a[idx] = e.getValue();
-    	}
-    	return a;
+    /*
+	 * Static initialization (could be inlined in the up-top initializer block).
+	 */
+
+    private static void initDict()
+    {
+    	Logger l = Logger.getLogger(G1Player.class);
+        try{
+        	Iterator<String> words = mine.getWordIterator();
+        	while (words.hasNext()) {
+                String word = words.next();
+
+                Word tempword= new Word(word);
+                l.trace(word + ": " + tempword.score);
+                // System.out.println("reached 2");
+                if(tempword.length==7){
+                	sevenletterlist.add(tempword);
+                }
+                wordlist.add(tempword);
+            }
+
+        }
+        catch(Exception e)
+        {
+            l.fatal("Could not load dictionary!",e);
+        }
     }
 
 }
