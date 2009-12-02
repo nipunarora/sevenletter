@@ -194,10 +194,18 @@ public class G1Player implements Player{
 
     	LetterSet lset = (LetterSet) mine.getCachedItemSet(terms);
     	//Collection<Word> currenttargets = getReachableSevenLetterWords(lset);
-    	Collection<Integer> currenttargets = getTargetIndices(lset, new int[0]);
-    	l.debug("From " + s + " we can reach " + currenttargets.size() + " seven-letter words");
+    	Collection<Integer> currenttargets;
+    	Collection<Integer> couldreachiflost;
     	int[] wouldlose = hypotheticallosses(bidChar);
-    	Collection<Integer> couldreachiflost = getTargetIndices(lset, wouldlose);
+    	// irritating special case for initial-letter hunting:
+    	if (0 < terms.length) {
+    		 currenttargets = getTargetIndices(lset, new int[0]);
+    		 couldreachiflost = getTargetIndices(lset, wouldlose);
+    	} else {
+    		currenttargets = emptyRackTargets(null);
+    		couldreachiflost = emptyRackTargets(wouldlose);
+    	}
+    	l.debug("From " + s + " we can reach " + currenttargets.size() + " seven-letter words");
     	l.debug("If we lose on " + bidChar + " we can reach " + couldreachiflost.size() + " seven-letter words");
 
     	String[] extended_terms = Arrays.copyOf(terms, terms.length + 1);
@@ -226,6 +234,7 @@ public class G1Player implements Player{
 
     	if(matchfound){  // there is a seven-letter we can reach
     		double cutoff = 0.4;
+    		// if we're low on options, take anything that doesn't hurt us
     		if (2 > bids_per_letter_remaining) cutoff = 0;
     		if(6 == openletters.size() || kept_fraction > cutoff)
     			return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
@@ -476,11 +485,29 @@ public class G1Player implements Player{
     	return found;
 	}
 
+	private List<Integer> emptyRackTargets(int[] wouldlose) {
+		ArrayList<Integer> found = new ArrayList<Integer>();
+
+		boolean temp_exclude[] = new boolean[wordlist.size()];
+		if (null != wouldlose) {
+			for (int i : wouldlose) temp_exclude[i] = true;
+		}
+
+		for (int wordID = 0; wordID < wordlist.size(); wordID++) {
+			if (reachable[wordID] && !temp_exclude[wordID] && is_seven_letter[wordID]) {
+				found.add(wordID);
+			}
+		}
+		return found;
+	}
+
 	private List<Integer> getTargetIndices(LetterSet lset, int[] wouldlose) {
 		ArrayList<Integer> found = new ArrayList<Integer>();
 
 		boolean temp_exclude[] = new boolean[wordlist.size()];
-		for (int i : wouldlose) temp_exclude[i] = true;
+		if (null != wouldlose) {
+			for (int i : wouldlose) temp_exclude[i] = true;
+		}
 
     	if (null != lset) {
     		for (int wordID : lset.getTransactions()) {
@@ -493,7 +520,7 @@ public class G1Player implements Player{
 	}
 
     private Collection<Word> getReachableSevenLetterWords(LetterSet lset) {
-    	return getReachableSevenLetterWords(lset, new int[0]);
+    	return getReachableSevenLetterWords(lset, null);
     }
 
     /**
