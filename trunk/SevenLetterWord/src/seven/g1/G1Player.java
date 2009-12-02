@@ -224,15 +224,10 @@ public class G1Player implements Player{
     	double kept_fraction = (double) potentialsum / (double) currsum;
     	l.debug("Current p-sum: " + currsum + "; kept fraction " + kept_fraction);
 
-
-
-    	// does this letter help us?
-    	boolean matchfound = !couldreach.isEmpty();
-
     	double percentile = percentile(open,bidLetter.getAlphabet());
     	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
 
-    	if(matchfound){  // there is a seven-letter we can reach
+    	if(!couldreach.isEmpty()){  // there is a seven-letter word we can reach with this letter
     		double cutoff = 0.4;
     		// if we're low on options, take anything that doesn't hurt us
     		if (2 > bids_per_letter_remaining) cutoff = 0;
@@ -244,17 +239,13 @@ public class G1Player implements Player{
     			//return bidLetter.getValue();
     		else //if(percentile == 0)
     			return 0;
-    	}
-    	l.debug(bidChar + " is not useful to us. Checking if we can reach a 7 letter word");
-
-    	if(!currenttargets.isEmpty()){
-    		l.debug("Can still reach a 7-letter, bid 0 on "+bidChar+" and wait for a good letter");
-    		return 0;
-    	}
-    	else{
+    	} else if (currenttargets.isEmpty()) { // there is no reachable 7-letter
     		int value = scoreIncrementIfAcquire(bidLetter);
     		l.debug("Cannot reach 7, bid "+value+" on "+bidChar);
     		return value;
+    	} else {  		// there is a reachable 7-letter, but not using this letter
+    		l.debug("Can still reach a 7-letter, bid 0 on "+bidChar+" and wait for a good letter");
+    		return 0;
     	}
     }
 
