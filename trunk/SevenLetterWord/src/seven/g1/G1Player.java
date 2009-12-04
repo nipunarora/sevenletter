@@ -212,7 +212,6 @@ public class G1Player implements Player{
     	++current_auction;
     	l.debug("Player " + player_id +" on bidding round " + current_auction + " of " + total_auctions);
     	int letters_needed = (7 - openletters.size());
-    	double bids_per_letter_remaining = letters_needed > 0 ? (total_auctions - current_auction + 1)/letters_needed : 0;
        	char bidChar = bidLetter.getAlphabet();
     	/*if(openletters.isEmpty()){
     		String s= "ESAIRONLT";
@@ -267,17 +266,8 @@ public class G1Player implements Player{
     	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
 
     	if(!couldreach.isEmpty()){  // there is a seven-letter word we can reach with this letter
-    		double cutoff = 0.4;
-    		// if we're low on options, take anything that doesn't hurt us
-    		if (2 > bids_per_letter_remaining) {
-    			l.debug("Using lower acceptability threshold: bid ratio is " + bids_per_letter_remaining);
-    			cutoff = 0;
-    		}
-    		if(6 == openletters.size() || kept_fraction > cutoff) {
-    			return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
-    		} else {
-    			return 0;
-    		}
+    		int bid = makeBid(letters_needed, kept_fraction, lost_fraction, total_auctions - current_auction + 1, bidLetter);
+    		return bid;
     	} else if (currenttargets.isEmpty()) { // there is no reachable 7-letter
     		int value = scoreIncrementIfAcquire(bidLetter);
     		l.debug("Cannot reach 7, bid "+value+" on "+bidChar);
@@ -289,6 +279,21 @@ public class G1Player implements Player{
     }
 
 
+
+	protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
+		double cutoff = 0.4;
+		double bids_per_letter_remaining = letters_needed > 0 ? (double) auctions_left/letters_needed : 0;
+		// if we're low on options, take anything that doesn't hurt us
+		if (2 > bids_per_letter_remaining) {
+			l.debug("Using lower acceptability threshold: bid ratio is " + bids_per_letter_remaining);
+			cutoff = 0;
+		}
+		if(6 == openletters.size() || kept_fraction > cutoff) {
+			return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
+		} else {
+			return 0;
+		}
+	}
 
 	/*
 	 * Bookkeeping methods for bid tracking
@@ -659,6 +664,19 @@ public class G1Player implements Player{
         {
             l.fatal("Could not load dictionary!",e);
         }
+    }
+
+    public static class LossBidder extends G1Player {
+
+		/* (non-Javadoc)
+		 * @see seven.g1.G1Player#makeBid(int, double, double, int, seven.ui.Letter)
+		 */
+		@Override
+		protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
+			return (int) ( (50 * lost_fraction) * (1 + 1/(double) auctions_left));
+		}
+
+
     }
 
 }
