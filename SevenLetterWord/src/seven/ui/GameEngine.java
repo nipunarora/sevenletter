@@ -1,13 +1,20 @@
 package seven.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.ArrayList;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 /*
  * To change this template, choose Tools | Templates
@@ -34,11 +41,16 @@ public class GameEngine extends javax.swing.JFrame {
     static Boolean play;
     public static GameEngine thisGameEngine;
     /** Creates new form GameEngine */
+    public static javax.swing.Timer memUpdate;
+    private Logger logger = Logger.getLogger(GameEngine.class);
+
+    static {
+		PropertyConfigurator.configure("logger.properties");
+    }
     public GameEngine() {
         initComponents();
         myInit();
     }
-
 
         private static class GameRunner implements Runnable
     {
@@ -107,11 +119,12 @@ public class GameEngine extends javax.swing.JFrame {
         RoundsLabel = new javax.swing.JLabel();
         StatusLabel = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
+        txtMemUsage = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Seven Letter Word - Game Simulator");
 
-        ScreenTable.setFont(new java.awt.Font("Tahoma", 0, 14));
+        ScreenTable.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         ScreenTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -135,8 +148,8 @@ public class GameEngine extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        ScreenTable.setIntercellSpacing(new java.awt.Dimension(15, 15));
-        ScreenTable.setRowHeight(45);
+        ScreenTable.setRowHeight(20);
+        ScreenTable.setRowMargin(5);
         jScrollPane1.setViewportView(ScreenTable);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -186,13 +199,13 @@ public class GameEngine extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
-                    .addComponent(input_combo, 0, 162, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE)
+                    .addComponent(input_combo, 0, 223, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(AddPlayerButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(GameDelaySlider, javax.swing.GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
+                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE))
+                    .addComponent(GameDelaySlider, javax.swing.GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE)
                     .addComponent(jLabel2)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -316,10 +329,12 @@ public class GameEngine extends javax.swing.JFrame {
         );
 
         StatusLabel.setBackground(new java.awt.Color(153, 153, 255));
-        StatusLabel.setFont(new java.awt.Font("Tahoma", 0, 14));
+        StatusLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         StatusLabel.setText("Status:");
 
         jLabel5.setText("Program Controls:");
+
+        txtMemUsage.setText("MEM");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -328,29 +343,39 @@ public class GameEngine extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 701, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 770, Short.MAX_VALUE)
+                        .addGap(12, 12, 12)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(StatusLabel)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel5)
-                    .addComponent(StatusLabel))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 878, Short.MAX_VALUE)
+                        .addComponent(txtMemUsage)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel5)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel5))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(txtMemUsage)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 342, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, 0, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(StatusLabel)
-                .addGap(103, 103, 103))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 374, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(StatusLabel))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
@@ -362,7 +387,7 @@ public class GameEngine extends javax.swing.JFrame {
         //PlayerListbox.setModel(new DefaultListModel());
         DefaultListModel dlm = (DefaultListModel) PlayerListbox.getModel();
         dlm.add(dlm.getSize(),(Object)player);
-        
+
 
     }//GEN-LAST:event_AddPlayerButtonActionPerformed
 
@@ -378,7 +403,7 @@ public class GameEngine extends javax.swing.JFrame {
              {
                  // Do nothing!
              }
-             
+
          }while(PlayerListbox.getSelectedIndices().length != 0);
 
     }//GEN-LAST:event_jButton1ActionPerformed
@@ -544,6 +569,7 @@ public class GameEngine extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JComboBox secretBox;
+    private javax.swing.JLabel txtMemUsage;
     // End of variables declaration//GEN-END:variables
 
 
@@ -554,6 +580,23 @@ public class GameEngine extends javax.swing.JFrame {
         PlayerListbox.setModel(new DefaultListModel());
         GameScreen = ScreenTable;
         thisGameEngine = this;
+        Runtime r = Runtime.getRuntime();
+		long free = r.freeMemory();
+		txtMemUsage.setText(((r.totalMemory() - free)/1024/1024) + "/"+(r.maxMemory()/1024/1024)+"MB");
+        memUpdate= new Timer(500, new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Runtime r = Runtime.getRuntime();
+				long free = r.freeMemory();
+//				logger.debug("Currently using " +
+//						(r.totalMemory() - free) + " bytes(?) -- free " + free
+//				);
+				txtMemUsage.setText(((r.totalMemory() - free)/1024/1024) + "/"+(r.maxMemory()/1024/1024)+"MB");
+
+			}
+		});
+        memUpdate.start();
         this.validate();
     }
 
@@ -576,7 +619,7 @@ public class GameEngine extends javax.swing.JFrame {
 
         String bidletter = "";
         DefaultTableModel dtm = (DefaultTableModel)ScreenTable.getModel();
-        
+
         while(dtm.getRowCount() != 0)
         {
             dtm.removeRow(0);
@@ -605,7 +648,14 @@ public class GameEngine extends javax.swing.JFrame {
                 bidvalue = gameconfig.BidList.get(lastbidIndex).bidvalues.get(loop);
                 bidletter = gameconfig.BidList.get(lastbidIndex).TargetLetter.alphabet.toString();
                 LetterLabel.setText("Current Letter: " + bidletter);
-                StatusLabel.setText("Status: Letter won by [" + gameconfig.BidList.get(lastbidIndex).wonBy + "] (Winning bid: "  + gameconfig.BidList.get(lastbidIndex).winAmmount + ")");
+                PlayerBids l = gameconfig.BidList.get(lastbidIndex);
+                String formatString = "<html>Status: Letter won by player %d [%s]<br>"
+							+ "Winning bid: %d (Actually paid: %d)</html>";
+                int winner_id = l.getWinnerID();
+				Object formatargs[] = {
+						winner_id + 1, l.getWonBy(), l.getBidvalues().get(winner_id),l.getWinAmmount()
+				};
+                StatusLabel.setText(String.format(formatString, formatargs));
             }
             }catch(Exception ex)
             {
@@ -616,6 +666,8 @@ public class GameEngine extends javax.swing.JFrame {
             if(gameconfig.PlayerWords.get(loop) != null)
             {
                 wordReturned = gameconfig.PlayerWords.get(loop);
+                if(wordReturned.length() == 7)
+                	wordReturned = "<html><b>"+wordReturned+"</b></html>";
             }
             } catch(Exception ex)
             {
@@ -626,15 +678,15 @@ public class GameEngine extends javax.swing.JFrame {
             if(gameconfig.wordbag.size() !=0)
             {
                 wbstring = gameconfig.wordbag.get(loop);
-                
+
             }
 
             if(gameconfig.lasPoints.size() != 0)
             {
                 points = gameconfig.lasPoints.get(loop).toString();
-                
+
             }
-            Object[] UIData = new Object[]{playername,score + "   ",secretLetters,openLetters,bidvalue+ "   ",wordReturned,points,wbstring};
+            Object[] UIData = new Object[]{playername.substring(playername.indexOf(".")+1),score + "   ",secretLetters,openLetters,bidvalue+ "   ",wordReturned,points,wbstring};
             dtm.addRow(UIData);
             RoundsLabel.setText("Current round: " + (gameconfig.current_round + 1));
 
