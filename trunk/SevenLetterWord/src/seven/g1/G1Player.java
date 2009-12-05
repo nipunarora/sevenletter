@@ -93,6 +93,8 @@ public class G1Player implements Player{
 	int total_auctions = 0;
 	int score;
 	int cumulative_bid = 0;
+	int total_cumulative_bid = 0;
+	double average_bid; 
 	ArrayList<TrackedPlayer> otherPlayers;
 
 	private Logger l = Logger.getLogger(this.getClass());
@@ -176,6 +178,7 @@ public class G1Player implements Player{
 			total_auctions = (7 - openletters.size()) * PlayerList.size();
 			score = secretstate.getScore();
 			cumulative_bid = 0;
+			total_cumulative_bid = 0;
 
 
 			if(otherPlayers == null){
@@ -289,7 +292,8 @@ public class G1Player implements Player{
 			cutoff = 0;
 		}
 		if(6 == openletters.size() || kept_fraction > cutoff) {
-			return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
+			//return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
+			return (int) Math.ceil(average_bid)+2;
 		} else {
 			return 0;
 		}
@@ -303,6 +307,7 @@ public class G1Player implements Player{
 	 */
 	private void checkBidSuccess(ArrayList<PlayerBids> bidList) {
 		if(!bidList.isEmpty()){
+			int max = 0;
 			PlayerBids LastBid= bidList.get(bidList.size()-1);
 			Letter lastletter = LastBid.getTargetLetter();
 			int amountBid = LastBid.getWinAmmount();
@@ -314,6 +319,12 @@ public class G1Player implements Player{
 			} else {
 				lost(LastBid);
 			}
+			for(int i : LastBid.getBidvalues()){
+				if(i > max)
+					max = i;
+			}
+			total_cumulative_bid += max;
+			average_bid = total_cumulative_bid / (current_auction);
 			char c = LastBid.getTargetLetter().getAlphabet();
 			LetterSet set = getLetterSet(c);
 			int bagarray[] = arrayFromMap(letterBag);
