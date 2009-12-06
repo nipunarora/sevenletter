@@ -91,10 +91,12 @@ public class G1Player implements Player{
 	int player_id = -1;
 	int current_auction = 0;
 	int total_auctions = 0;
+	int auctions_played = 0;
 	int score;
 	int cumulative_bid = 0;
-	int total_cumulative_bid = 0;
-	double average_bid; 
+	ArrayList<Integer> maxBids = new ArrayList<Integer>();
+	double average_bid;
+	double std_deviation;
 	ArrayList<TrackedPlayer> otherPlayers;
 
 	private Logger l = Logger.getLogger(this.getClass());
@@ -178,7 +180,7 @@ public class G1Player implements Player{
 			total_auctions = (7 - openletters.size()) * PlayerList.size();
 			score = secretstate.getScore();
 			cumulative_bid = 0;
-			total_cumulative_bid = 0;
+			std_deviation = 5;
 
 
 			if(otherPlayers == null){
@@ -269,6 +271,7 @@ public class G1Player implements Player{
     	l.debug("current alphabet "+ bidLetter.getAlphabet()+ " percentile "+ percentile);
 
     	if(!couldreach.isEmpty()){  // there is a seven-letter word we can reach with this letter
+			updateBiddingStatistics(PlayerBidList);
     		int bid = makeBid(letters_needed, kept_fraction, lost_fraction, total_auctions - current_auction + 1, bidLetter);
     		return bid;
     	} else if (currenttargets.isEmpty()) { // there is no reachable 7-letter
@@ -281,7 +284,22 @@ public class G1Player implements Player{
     	}
     }
 
-
+	protected void updateBiddingStatistics(ArrayList<PlayerBids> bidList){
+		if(!bidList.isEmpty()){
+			PlayerBids LastBid= bidList.get(bidList.size()-1);
+			 
+			int max = 0;
+			for(int i : LastBid.getBidvalues()){
+				if(i > max)
+					max = i;
+			}
+			++auctions_played;
+			maxBids.add(max);
+			average_bid = average();
+			std_deviation = stddev();
+			l.debug("average: "+average_bid+" std_dev: "+std_deviation);
+		}
+	}
 
 	protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
 		double cutoff = 0.4;
@@ -292,11 +310,31 @@ public class G1Player implements Player{
 			cutoff = 0;
 		}
 		if(6 == openletters.size() || kept_fraction > cutoff) {
-			//return (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
-			return (int) Math.ceil(average_bid)+2;
+			int tentative = (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
+			if(Math.abs(tentative - average_bid) > std_deviation)
+				tentative = (int)(tentative + average_bid)/2;
+			//return 
+			return tentative;
 		} else {
 			return 0;
 		}
+	}
+	
+	double average(){
+		double sum = 0;
+		for(int i : maxBids){
+			sum += i;
+		}
+		return sum / auctions_played;
+	}
+	
+	double stddev(){
+		double avg = average();
+		double diff = 0;
+		for(int i : maxBids){
+			diff += Math.pow((avg-i), 2);
+		}
+		return Math.sqrt(diff / auctions_played);
 	}
 
 	/*
@@ -307,7 +345,6 @@ public class G1Player implements Player{
 	 */
 	private void checkBidSuccess(ArrayList<PlayerBids> bidList) {
 		if(!bidList.isEmpty()){
-			int max = 0;
 			PlayerBids LastBid= bidList.get(bidList.size()-1);
 			Letter lastletter = LastBid.getTargetLetter();
 			int amountBid = LastBid.getWinAmmount();
@@ -319,12 +356,7 @@ public class G1Player implements Player{
 			} else {
 				lost(LastBid);
 			}
-			for(int i : LastBid.getBidvalues()){
-				if(i > max)
-					max = i;
-			}
-			total_cumulative_bid += max;
-			average_bid = total_cumulative_bid / (current_auction);
+
 			char c = LastBid.getTargetLetter().getAlphabet();
 			LetterSet set = getLetterSet(c);
 			int bagarray[] = arrayFromMap(letterBag);
