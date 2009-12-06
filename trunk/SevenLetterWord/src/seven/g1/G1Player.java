@@ -307,12 +307,15 @@ public class G1Player implements Player{
 	protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
 		double cutoff = 0.4;
 		double bids_per_letter_remaining = letters_needed > 0 ? (double) auctions_left/letters_needed : 0;
+		if(6 == openletters.size() && 3 > bids_per_letter_remaining){
+			return 50;
+		}
 		// if we're low on options, take anything that doesn't hurt us
 		if (2 > bids_per_letter_remaining) {
 			l.debug("Using lower acceptability threshold: bid ratio is " + bids_per_letter_remaining);
 			cutoff = 0;
 		}
-		if(6 == openletters.size() || kept_fraction > cutoff) {
+		if(kept_fraction > cutoff) {
 			int tentative = (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
 			if(Math.abs(tentative - average_bid) > std_deviation)
 				tentative = (int)(tentative + average_bid)/2;
