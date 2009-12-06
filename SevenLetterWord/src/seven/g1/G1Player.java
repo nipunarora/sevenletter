@@ -50,6 +50,8 @@ public class G1Player implements Player{
 	/*
 	 * Shared precalculated information for all instances of our player
 	 */
+	String wordReturned= new String();
+	static final History hist= new History();
 	static final LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
 	static final ArrayList<Word> wordlist = new ArrayList<Word>();
 	static final ArrayList<Word> sevenletterlist = new ArrayList<Word>();
@@ -87,7 +89,8 @@ public class G1Player implements Player{
 	SecretState refstate;
 	Boolean first = true;
 	ArrayList<PlayerBids> RefList= new ArrayList<PlayerBids>();
-
+	ArrayList<String> RefPlayerList= new ArrayList<String>();
+	
 	int player_id = -1;
 	int current_auction = 0;
 	int total_auctions = 0;
@@ -211,7 +214,7 @@ public class G1Player implements Player{
 			checkBidSuccess(PlayerBidList);
 		}
 
-
+		RefPlayerList= PlayerList;
 		RefList=PlayerBidList;
     	refstate=secretstate;
     	++current_auction;
@@ -442,6 +445,22 @@ public class G1Player implements Player{
     	score += bestscore;
         // tell "bid" that we are about to begin a new round
     	first = true;
+    	
+    	/**
+    	 * Adding to History
+    	 */
+    	l.debug("The size of the history is " + RefList.size());
+    	
+    	if(RefList.size()== RefPlayerList.size()*7*10 ){
+    		for(int i=0; i<RefPlayerList.size()*7*10;i++){
+    			int winAmount= RefList.get(i).getWinAmmount();
+    			int wonBy= RefList.get(i).getWinnerID();
+    			boolean winnerStatus= player_id== RefList.get(i).getWinnerID()? true:false;
+    			int ourBid= RefList.get(i).getBidvalues().get(player_id);
+    			hist.add(ourBid, winAmount, winnerStatus);
+    		}
+    	}
+    		
     	return bestword;
     }
     /*
