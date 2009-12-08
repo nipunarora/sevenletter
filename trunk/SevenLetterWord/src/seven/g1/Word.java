@@ -83,17 +83,23 @@ public class Word {
 	public long drawPossibilities(int[] bag_counts, int[] rack_counts) {
 		assert(LETTERS == bag_counts.length);
 		assert(LETTERS == rack_counts.length);
+		int have = 0;
 		int needed = 0;
 		long count = 1;
 		for (int i = 0; i < LETTERS; i++) {
 			int n = bag_counts[i];
 			int r = countKeep[i] - rack_counts[i];
+			have += rack_counts[i];
 			needed += r;
 			int nCr = nCr(n,r);
 			count *= nCr;
 		}
-		long permute = factorial(needed); // I think this is the wrong thing to do. :-(
-		count *= permute; // oh, whoa...
+		if (7 <= have + needed) {
+			long permute = factorial(needed);
+			count *= permute; // oh, whoa...
+		} else {
+			count = 0;
+		}
 		return count;
 	}
 
