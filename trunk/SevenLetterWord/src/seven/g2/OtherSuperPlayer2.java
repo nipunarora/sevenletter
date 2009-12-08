@@ -7,8 +7,6 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.log4j.varia.NullAppender;
-
 import seven.g2.miner.LetterMine.LetterSet;
 import seven.g2.util.Logger;
 import seven.g2.util.ScrabbleUtility;
@@ -21,7 +19,7 @@ import seven.ui.Player;
 import seven.ui.PlayerBids;
 import seven.ui.SecretState;
 
-public class SuperPlayer2 implements Player {
+public class OtherSuperPlayer2 implements Player {
 
 	private int noOfWords = 54833;
 
@@ -30,6 +28,7 @@ public class SuperPlayer2 implements Player {
 	private double limitThreshold1 = 15000;
 	private double limitThreshold2 = 0.3;
 	private double limitThreshold3 = 0.1;
+	private double limitThreshold4 = 0.1;
 
 	private Logger log = new Logger(Logger.LogLevel.DEBUG, this.getClass());
 
@@ -44,7 +43,6 @@ public class SuperPlayer2 implements Player {
 	private Random rand = new Random();
 	private int myID;
 	private PlayersHistory playersHistory = null;
-	private boolean didIBidForPreviousLetter = false;
 
 	/** Information relevant to particular round **/
 	private String currString = "";
@@ -58,12 +56,15 @@ public class SuperPlayer2 implements Player {
 	private boolean isSevenLetterWordPossible = true;
 	private WordGroup currWordGroup = null;
 	int cnt =0;
+	boolean didIBid = false;
+	private int scale = 1;
+	private int minBidBase = 1;
 	/**
 	 * 
 	 */
 	
 	private PlayersHistory playerHistory; 
-	public SuperPlayer2() {
+	public OtherSuperPlayer2() {
 		wordList = new WordList();
 		totalBidAmount = 100;
 		currString = "";
@@ -99,6 +100,10 @@ public class SuperPlayer2 implements Player {
 
 		if (retWord == null) {
 			retWord = "";
+		}
+		
+		if(currRound == totalNoOfRounds){
+			System.out.println(cnt);
 		}
 		return retWord;
 	}
@@ -178,27 +183,32 @@ public class SuperPlayer2 implements Player {
 
 						if (possNewWordGroup.getTotalOccurrences() > limitThreshold1) {
 							/** First chance randomizer to avoid infighting **/
-							bidAmount = bidLetter.getValue() + rand.nextInt(10);
+							bidAmount = bidLetter.getValue() + rand.nextInt(3)
+							 + rand.nextInt((int)(possNewWordGroup.getTotalOccurrences() / limitThreshold1  * 3));
+							
 							logBid(bidAmount,
 									"WIN = GOOD : At least >15000 words can still be made.");
 					//added now to bid based on history
-					//		if(currRound != 0)
-							{
-								ArrayList<Double> allBids=playersHistory.possibleBids(bidLetter);
+//							if(currRound != 0)
+//							{
+//								ArrayList<Double> allBids=playersHistory.possibleBids(bidLetter);
+//							
+//							if(allBids.size()!=0)
+//							{
+//								
+//								double max=0;
+//								for(int i=0;i<allBids.size();i++)
+//								{
+//									if(allBids.get(i) > max)
+//										max = allBids.get(i);
+//								}
+//								
+//								log.debug("max = " + max);
+//								bidAmount = (int)max+rand.nextInt(3);
+//							
+//							}
+//							}
 							
-							if(allBids.size()!=0)
-							{
-								
-								double max=0;
-								for(int i=0;i<allBids.size();i++)
-								{
-									if(allBids.get(i) > max)
-										max = allBids.get(i);
-								}
-								bidAmount = (int)max+rand.nextInt(3);
-							
-							}
-							}
 							/** Check if we have seen x number of letters i.e x = no of players **/
 							if (noOfAuctionsLeft < totalNoOfAuctions
 									/ noOfPlayers * (noOfPlayers - 1)) {
@@ -207,6 +217,7 @@ public class SuperPlayer2 implements Player {
 								logBid(bidAmount,
 										"WIN = GOOD : Bid Incremented as I haven't yet picked first letter.");
 							}
+							
 						} else {
 							bidAmount = 0;
 							logBid(bidAmount,
@@ -219,12 +230,12 @@ public class SuperPlayer2 implements Player {
 						double totalOccurencesRatio = possNewWordGroup.getTotalOccurrences() * 1.0
 						/ currWordGroup.getTotalOccurrences();
 						
-						int[] counts = doAnalysis1();
+						double[] values = doAnalysis1();
 						
 						if (totalOccurencesRatio > limitThreshold2) {
 							bidAmount = bidLetter.getValue();
 							
-							int bidValIncr = getBidValIncrement(counts[0], counts[1],bidLetter,totalOccurencesRatio) 
+							int bidValIncr = getBidValIncrement1(values,bidLetter,totalOccurencesRatio) 
 												+ getAuctionCountBasedIncr();
 
 							log.debug("Bid Components = " + bidAmount + "," + bidValIncr);
@@ -256,37 +267,45 @@ public class SuperPlayer2 implements Player {
 								/** Calculate gain **/
 								int gain = sw.getScore()
 										- amountSpentInCurrentRound;
+//								
+//								int randIncr = rand
+//										.nextInt(totalBidAmount / 10);
 								
-								int randIncr = rand
-										.nextInt(totalBidAmount / 10);
-								
-								bidAmount = bidLetter.getValue() + rand.nextInt(gain/2) ;
+//								bidAmount = bidLetter.getValue() + rand.nextInt(gain/2) ;
 
-								logBid(bidAmount,
-										"WIN = GOOD : This makes me a 7 letter word.");
-
-							} else if (possNewWordGroup.getTotalOccurrences()
-									* 1.0 / currWordGroup.getTotalOccurrences() > limitThreshold3
-									&& possNewWordGroup.getOccurrences(7) * 1.0
-											/ currWordGroup.getOccurrences(7) > limitThreshold3
-									 ) {
-
-								// doAnalysis2(possNewString);
-
-								bidAmount = bidLetter.getValue() + getCreditBasedRandIncr() + getAuctionCountBasedIncr();
-
-								logBid(bidAmount,
-										"WIN = GOOD : Can make >"+ limitThreshold3*100+"% of words and >"+ limitThreshold3*100+"% of 7 letter words.");
-								
 								//With random probability p, perturb our bid to be in the range [bid,9]
 								int amountLeftTo50 = (50-amountSpentInCurrentRound)/(7-currString.length());
 								if(bidAmount > 0 && bidAmount < amountLeftTo50)
 									bidAmount = bidAmount + rand.nextInt(amountLeftTo50-bidAmount);
-								
-							} else {
-								bidAmount = 0;
-								logBid(bidAmount, "WIN = BAD : Limit myself.");
+	
+								logBid(bidAmount,
+										"WIN = GOOD : This makes me a 7 letter word.");
+
+							} else{ 
+									double sevenLetterOccurencesRatio = possNewWordGroup.getTotalOccurrences()
+									* 1.0 / currWordGroup.getTotalOccurrences();
+									double totalOccurencesRatio = possNewWordGroup.getTotalOccurrences() * 1.0
+									/ currWordGroup.getTotalOccurrences();
+									if (sevenLetterOccurencesRatio > limitThreshold3 && totalOccurencesRatio > limitThreshold4) {
+	
+										// doAnalysis2(possNewString);
+		
+										//bidAmount = bidLetter.getValue() + getCreditBasedRandIncr() + getAuctionCountBasedIncr();
+										bidAmount = getBidValIncrement2(sevenLetterOccurencesRatio,totalOccurencesRatio,bidLetter);
+										logBid(bidAmount,
+												"WIN = GOOD : Can make >"+ limitThreshold4*100+"% of words and >"+ limitThreshold3*100+"% of 7 letter words.");
+										//With random probability p, perturb our bid to be in the range [bid,9]
+										int amountLeftTo50 = (50-amountSpentInCurrentRound)/(7-currString.length());
+										if(bidAmount > 0 && bidAmount < amountLeftTo50)
+											bidAmount = bidAmount + rand.nextInt(amountLeftTo50-bidAmount);
+			
+									} else {
+									bidAmount = 0;
+									logBid(bidAmount, "WIN = BAD : Limit myself.");
+	
+								}
 							}
+							
 						}
 					} else {
 						log.debug("Currently a 7 letter word cant be formed.");
@@ -314,6 +333,12 @@ public class SuperPlayer2 implements Player {
 			}
 		}
 		
+		if(bidAmount != 0){
+			didIBid = true;
+		}else{
+			didIBid = false;
+		}
+		
 		return bidAmount;
 	}
 
@@ -331,13 +356,27 @@ public class SuperPlayer2 implements Player {
 			totalNoOfRounds = totalNoOfRounds_;
 			noOfPlayers = PlayerList.size();
 			noOfHiddenLetters = secretState.getSecretLetters().size();
-			// playersHistory = new PlayersHistory(noOfPlayers,noOfHiddenLetters,playerID);
+			//playersHistory = new PlayersHistory(noOfPlayers,noOfHiddenLetters,playerID);
 			isFirstRound = false;
+			
+			if(noOfPlayers == 2){
+				limitThreshold1 = 8000;
+				limitThreshold2 = 0.2;
+				minBidBase = 3;
+				scale = 2;
+				
+			}
 		}
+		
 		playersHistory = new PlayersHistory(noOfPlayers,noOfHiddenLetters,playerID);
+
+		if(currRound % 10 == 0){
+			//minBidBase++;
+		}
 		/** Update info which holds per round **/
 		isNewRound = false;
 		currRound++;
+		
 		currString = "";
 		noOfAuctionsLeft = noOfPlayers * (7 - noOfHiddenLetters) - 1;
 		totalNoOfAuctions = noOfAuctionsLeft;
@@ -422,9 +461,13 @@ public class SuperPlayer2 implements Player {
 		if (PlayerBidList.size() > 0) {
 			playersHistory.playersHistoryUpdate(PlayerBidList);
 			PlayerBids pb = PlayerBidList.get(PlayerBidList.size() - 1);
+
 			if (pb.getWinnerID() == myID) {
 				updatePreviousBidResult(pb.getTargetLetter().getAlphabet(), pb.getWinAmmount());
 			} else {
+				if(didIBid == true){
+					cnt++;
+				}
 				if (currWordGroup != null) {
 					/**
 					 * A letter is lost ... this may mean some words are no
@@ -530,17 +573,31 @@ public class SuperPlayer2 implements Player {
 	 * @param totalOccurencesRatio_ 
 	 * @return
 	 */
-	private int getBidValIncrement(int totalCandCnt, int goodCandCnt,Letter bidLetter, double totalOccurencesRatio_){
+	private int getBidValIncrement1(double[] values,Letter bidLetter, double totalOccurencesRatio_){
 		int totalCnt = ScrabbleUtility.TOTAL_TILE_COUNT - scrabbleBag.totalSeenTiles;
+				
+		int bidIncr = (int) (4 * totalOccurencesRatio_/ scrabbleBag.lettersLeft[bidLetter.getAlphabet() - 'A']);
+		//int bidIncr = (int) (4 * totalOccurencesRatio_/ values[2] / scrabbleBag.lettersLeft[bidLetter.getAlphabet() - 'A']);
 		
-		int minBidIncr = 1;		
-		if(totalOccurencesRatio_ > 0.5){
-			minBidIncr++;
-		}
-		int randIncr1 = rand.nextInt((int)(1 + (1 -  goodCandCnt * 1.0  /totalCnt) * 2 * bidLetter.getValue()));
+		int randIncr1 = rand.nextInt((int)(1 + (1 -  values[1] * 1.0  /totalCnt) * 2 * bidLetter.getValue()));
 		
-		log.debug("Bid Increment for <= 3 letters = " + minBidIncr + "," + randIncr1);
-		return minBidIncr + randIncr1;
+		log.debug("Bid Increment for <= 3 letters = " + minBidBase + "," + bidIncr+ "," + randIncr1);
+		return minBidBase + bidIncr + randIncr1;
+	}
+	
+	/**
+	 * 
+	 * @param bidLetter_ 
+	 * @param totalOccurencesRatio_ 
+	 * @param sevenLetterOccurencesRatio_ 
+	 * @return
+	 */
+	private int getBidValIncrement2(double sevenLetterOccurencesRatio_, double totalOccurencesRatio_, Letter bidLetter){
+		int baseBid = 2 + bidLetter.getValue() + getCreditBasedRandIncr() + getAuctionCountBasedIncr();
+
+		int bidIncr = (int) (7 * sevenLetterOccurencesRatio_/ scrabbleBag.lettersLeft[bidLetter.getAlphabet() - 'A']);
+		
+		return baseBid + bidIncr;
 	}
 	
 	/**
@@ -548,13 +605,14 @@ public class SuperPlayer2 implements Player {
 	 * @return
 	 */
 	private int getAuctionCountBasedIncr(){
-		int factor2 = (7 - currString.length() - 1 - (noOfAuctionsLeft - 1)/ noOfPlayers);
-		factor2 = factor2 > 0 ? factor2 : 0;
-		int randIncr2 = rand.nextInt((int)(1 + factor2 ));
+		double factor2 = ((7 - currString.length()) - ((noOfAuctionsLeft - 1) * 1.0/ noOfPlayers )) * scale;
+		factor2 = factor2 > 0 ? Math.ceil(factor2 -1): 0;
 		
-		log.debug("Bid Increment based on auctions = " + factor2);
+		int randIncr2 = (int)(factor2/2) + rand.nextInt((int)(1 + factor2/2 ));
 		
-		return factor2;
+		log.debug("Bid Increment based on auctions = " + factor2 );
+		
+		return (int)randIncr2;
 	}
 	
 	/**
@@ -578,15 +636,17 @@ public class SuperPlayer2 implements Player {
 		return randIncr;
 	}
 	
-	private int[] doAnalysis1() {
+	private double[] doAnalysis1() {
 		HashMap<Character, WordGroup> allPossSuccessorsWG = scrabbleBag
 				.filteredWordGroups(wordList.getAllSuccessors(currString),
 						currString);
 
 		HashSet<Character> goodSuccessors = new HashSet<Character>();
 		HashMap<Character, Double> occCounts = new HashMap<Character, Double>();
+		int totalCount = scrabbleBag.getSumTileCount(allPossSuccessorsWG.keySet());
 
 		HashMap<Double, Character> occCounts1 = new HashMap<Double, Character>();
+		
 		for (Character c : allPossSuccessorsWG.keySet()) {
 			double totalOccurencesRatio1 = allPossSuccessorsWG.get(c)
 					.getTotalOccurrences()
@@ -594,10 +654,35 @@ public class SuperPlayer2 implements Player {
 			occCounts.put(c, totalOccurencesRatio1);
 			occCounts1.put(totalOccurencesRatio1, c);
 
-			if (totalOccurencesRatio1 > limitThreshold2) {
+		}
+		
+		ArrayList<Double> ald2 = new ArrayList<Double>(occCounts.values());
+		Collections.sort(ald2);
+		Collections.reverse(ald2);
+		
+		
+		double threshold = 0;
+		int count = 0;
+		for(Double d: ald2){
+			threshold = d;
+			count+= scrabbleBag.lettersLeft[occCounts1.get(d) - 'A'];
+			
+			if ( count * 1.0 / totalCount >= 0.4){
+				break;
+			}
+		}
+		
+
+		limitThreshold2 = threshold;
+
+		log.debug("Adjusting limitThreshold2 = " + limitThreshold2);
+		
+		for (Character c : allPossSuccessorsWG.keySet()) {			
+			if (occCounts.get(c) > limitThreshold2) {
 				goodSuccessors.add(c);
 			}
 		}
+		
 		log.debug("No of candidate successors = " + allPossSuccessorsWG.size());
 		log.debug("No of good successors (> " + limitThreshold2 * 100 + "%) = "
 				+ goodSuccessors.size() + " " + goodSuccessors);
@@ -609,23 +694,8 @@ public class SuperPlayer2 implements Player {
 		ArrayList<Double> ald = new ArrayList<Double>(occCounts1.keySet());
 		Collections.sort(ald);
 		Collections.reverse(ald);
-		if(ald.get(ald.size() -1) > 0.5){
-			//System.out.println(ald.get(ald.size() -1));
-		}
 		
-		double threshold = 0;
-		int count = 0;
-		for(Double d: ald){
-			threshold = d;
-			count+= scrabbleBag.lettersLeft[occCounts1.get(d) - 'A'];
-			
-			if(count * 1.0 / (ScrabbleUtility.TOTAL_TILE_COUNT - scrabbleBag.totalSeenTiles) > 1 / noOfPlayers){
-				break;
-			}
-		}
-		
-		//System.out.println("t=" + threshold);
-		return counts;
+		return new double[]{counts[0],counts[1],ald2.get(0),ald.get(0)};
 
 	}
 
