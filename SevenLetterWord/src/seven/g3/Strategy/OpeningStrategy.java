@@ -7,14 +7,14 @@ import seven.g3.KnowledgeBase.KnowledgeBase;
 import seven.g3.KnowledgeBase.Word;
 import seven.ui.Letter;
 import seven.ui.PlayerBids;
-import seven.g3.ScrabbleValues;
+import seven.ui.ScrabbleValues;
 import seven.ui.SecretState;
 
 public class OpeningStrategy extends Strategy {
-
+	
 	boolean failed;
 	public static final int MIN_FREQ = 250;
-
+	
 	public OpeningStrategy(KnowledgeBase kb, int totalRounds,
 			ArrayList<String> playerList) {
 		super(kb, totalRounds, playerList);
@@ -30,10 +30,16 @@ public class OpeningStrategy extends Strategy {
 		}
 		else {
 			if(letters.size() == 0 || ScrabbleValues.getLetterFrequency(bidLetter.getAlphabet()) == 1) {
-				/* either first letter or bidLetter is common; bid value is fine
+				/* either first letter or bidLetter is common; bid value is fine 
 				 * TODO:  maybe bid higher for fewer players?
 				 **/
-				return bidLetter.getValue();
+				if(bidLetter.getValue() >= 5) {
+					// cap at 5, which is lowest cost of rare letters
+					return 5;
+				}
+				else {
+					return bidLetter.getValue();
+				}
 			}
 			else {
 				Set<Character> firstLetter = letters.keySet();
@@ -42,7 +48,7 @@ public class OpeningStrategy extends Strategy {
 					/* firstLetter should have just one letter, but I don't know a better way to extract from Set */
 					a = c.charValue();
 				}
-
+				
 				if(ScrabbleValues.getLetterFrequency(a) <= 1) {
 					return bidLetter.getValue();
 				}
@@ -73,11 +79,11 @@ public class OpeningStrategy extends Strategy {
 			SecretState secretstate, int numLetters,
 			HashMap<Character, Integer> letters) {
 		// TODO Auto-generated method stub
-		if(letters.size() > 1)
+		if(letters.size() >= 2)
 			failed = true;
 
 	}
-
+	
 	public boolean hasFailed()
 	{
 		return failed;

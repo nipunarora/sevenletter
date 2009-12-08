@@ -72,7 +72,7 @@ public class HighFrequencyStrategy extends Strategy {
 		
 		if(word.isEmpty()) {
 			String sevenletterWord = get7letterWord();
-			Util.println("using seven leter strategy" + sevenletterWord);
+			//Util.println("using seven leter strategy" + sevenletterWord);
 		}
 		
 		strat = new NaiveStrategy(kb, totalRounds, playerList);
@@ -111,15 +111,15 @@ public class HighFrequencyStrategy extends Strategy {
 			return;
 		}
 		
-		Util.println("--bid letter is " + bidLetter.getAlphabet());
+		//Util.println("--bid letter is " + bidLetter.getAlphabet());
 		bid_amount = 0;
 		if (hasWonBid(numLetters) && !isRequired) {
 			// switchStrategy();
 			switchstrategy = true;
 			strat.update(bidLetter, PlayerBidList, secretstate, numLetters,
 					letters);
-			Util.println("***Switching the strategy as our required word cannot be formed by '"
-									+ previous_char + "' **");
+			//Util.println("***Switching the strategy as our required word cannot be formed by '"
+		//							+ previous_char + "' **");
 			return;
 		}
 
@@ -128,22 +128,22 @@ public class HighFrequencyStrategy extends Strategy {
 			charsObtained.add(previous_char);
 			charsRequired.remove(charsRequired.indexOf(previous_char));
 		}
-		Util.println("required chars :");
+		//Util.println("required chars :");
 		for (Character c : charsRequired) {
-			Util.println(c + " ");
+			//Util.println(c + " ");
 		}
 
-		Util.println("");
+		//Util.println("");
 
-		Util.println("obtained chars :");
+		//Util.println("obtained chars :");
 		for (Character c : charsObtained) {
-			Util.println(c + " ");
+			//Util.println(c + " ");
 		}
-		Util.println();
-		Util.println("Is it required :"
-					+ charsRequired.contains(bidLetter.getAlphabet()));
+		//Util.println();
+		//Util.println("Is it required :"
+		//			+ charsRequired.contains(bidLetter.getAlphabet()));
 		if (charsRequired.contains(bidLetter.getAlphabet())) {
-			Util.println("Hurray required word...");
+			//Util.println("Hurray required word...");
 			bidIncrementer++;
 			bid_amount = bidLetter.getValue() + bidIncrementer;//calBidAmount();
 			if(bid_amount > 6){

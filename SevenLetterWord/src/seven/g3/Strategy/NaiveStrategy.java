@@ -14,7 +14,7 @@ import seven.ui.SecretState;
 public class NaiveStrategy extends Strategy {
 	
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 
 	protected static final int NUM_LETTERS_BEFORE_STRATEGY = 2;
 
