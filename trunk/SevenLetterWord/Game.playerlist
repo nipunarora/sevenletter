@@ -2,9 +2,11 @@ seven.g0.DumbPlayer1
 seven.g0.DumbPlayer2
 seven.g0.DumbPlayer3
 seven.g0.DumbPlayer4
+seven.g0.StingyPlayer
 seven.g1.G1Player
 seven.g1.G1Player$LossBidder
 seven.g2.SuperPlayer2
 seven.g3.SimplePlayer
 seven.g4.g4Player
+seven.g4.g4Player$g4ForWardPlayer
 seven.g5.G5_Scrabblista
