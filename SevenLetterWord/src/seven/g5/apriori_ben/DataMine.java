@@ -75,7 +75,7 @@ public abstract class DataMine {
 
        public ItemSet getCachedItemSet(String[] terms) {
                String lookup = makeKey(terms);
-               System.out.println("lookup "+lookup);
+               logger.debug("lookup "+lookup);
                return itemCache.get(lookup);
        }
 
@@ -348,8 +348,8 @@ public abstract class DataMine {
                                        infer.conf * 100,
                                        infer.support * 100
                        };
-                       System.out.println(String.format("%s => %s (Conf: %.2f%%, Supp: %.2f%%)", a));
-//                     System.out.println("["+infer.antecedent.getKey()+"]=>["+infer.consequent.getKey()+"] (Conf : "+infer.conf+", Supp : "+infer.support+")");
+                       logger.debug(String.format("%s => %s (Conf: %.2f%%, Supp: %.2f%%)", a));
+//                     logger.debug("["+infer.antecedent.getKey()+"]=>["+infer.consequent.getKey()+"] (Conf : "+infer.conf+", Supp : "+infer.support+")");
                }
 
        }
@@ -555,7 +555,7 @@ public abstract class DataMine {
                public ItemSet intersect(ItemSet other_in, boolean finalRound) {
                        ItemBitSet other;
                        if ( !(other_in instanceof ItemBitSet)) { // unnecessary type-safety?
-                               DataMine.this.logger.warn("Found that branch that Ben thought wouldn't happen");
+                               //DataMine.this.logger.warn("Found that branch that Ben thought wouldn't happen");
                                return super.intersect(other_in, finalRound);
                        } else {
                                other = (ItemBitSet) other_in;
@@ -618,7 +618,7 @@ public abstract class DataMine {
                public ItemSet intersect(ItemSet other_in,  boolean finalRound) {
                        ItemSetInt other;
                        if ( !(other_in instanceof ItemSetInt)) { // unnecessary type-safety?
-                               DataMine.this.logger.warn("Found that branch that Ben thought wouldn't happen");
+                               //DataMine.this.logger.warn("Found that branch that Ben thought wouldn't happen");
                                return super.intersect(other_in, finalRound);
                        } else {
                                other = (ItemSetInt) other_in;

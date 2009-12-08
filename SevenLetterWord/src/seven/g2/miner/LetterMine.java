@@ -71,6 +71,15 @@ public class LetterMine extends DataMine {
 			}
 			return words;
 		}
+		
+		public ScrabbleWord[] getScrabbleWords() {
+			ScrabbleWord[] words = new ScrabbleWord[this.transList.length];
+			for (int i = 0; i < transList.length; i++) {
+				words[i] = new ScrabbleWord(wordIndex[transList[i]]);
+			}
+			return words;
+		}
+		
 		public int getOccurrences(int length)
 		{
 			int r = 0;

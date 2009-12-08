@@ -18,6 +18,10 @@ public class Word implements Comparator<Word>{
 		return this.word;
 	}
 	
+	public int getLength() {
+		return this.word.length();
+	}
+	
 	public Word(String str)
 	{
 		this.word = str;
@@ -52,6 +56,44 @@ public class Word implements Comparator<Word>{
 		else {
 			return -i;
 		}
+	}
+	
+	public boolean matchPossible(HashMap<Character, Integer> matchLetters)
+	{
+		boolean rv = true;
+		
+		int myExcess = this.word.length();   // how many letters in our word NOT in provided letters
+		int theirExcess = 0;                 // how many letters provided NOT in our word
+		int theirTotal = 0;
+		
+		for(Character c : matchLetters.keySet())
+		{
+			int v_them = matchLetters.get(c);
+			int v_me   = (letters.containsKey(c)) ?  letters.get(c) : 0;
+			
+			theirTotal += v_them;
+			
+			if(v_them <= v_me) {
+				// there are more letters needed than are currently available
+				myExcess -= v_them;
+			}
+			else {
+				// there are more letters available than are necessary for this word
+				myExcess -= v_me;
+				theirExcess += (v_them - v_me);
+			}
+		}
+		
+		
+		if(myExcess + theirExcess <= 7 - theirTotal) {
+			rv = true;
+		}
+		else {
+			rv = false;
+		}
+		
+		
+		return rv;
 	}
 	
 	public boolean matchLetters(HashMap<Character, Integer> match)

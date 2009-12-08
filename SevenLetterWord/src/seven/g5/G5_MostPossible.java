@@ -20,7 +20,7 @@ import seven.ui.SecretState;
 import seven.g5.gameHolders.GameInfo;
 import seven.g5.gameHolders.PlayerInfo;
 
-public class G5_Scrabblista implements Player {
+public class G5_MostPossible implements Player {
 
 	private Logger log;
 	private Strategy strategy;
@@ -47,7 +47,7 @@ public class G5_Scrabblista implements Player {
 	GameInfo gi;
 	
 	
-	public G5_Scrabblista() {
+	public G5_MostPossible() {
 		this.log = new Logger(LogLevel.DEBUG, this.getClass());
 		this.myRack = new ArrayList<Letter>();
 		this.dh = new DictionaryHandler();
@@ -94,7 +94,10 @@ public class G5_Scrabblista implements Player {
 		//fill gameInfo
 		this.gi = new GameInfo(PlayerBidList, bidLetter, totalRounds, secretstate, PlayerList, numberTurnsRemaining, numberLettersRemaining, totalLettersRemaining);
 		if( continueStratFlag == 1 ) {
-			if( PlayerList.size() > 0 ) {
+			if( PlayerList.size() > 1 ) {
+	//			if( this.myRack.size() == 0 )
+	//				this.strategy = new CommonLetterKickOffStrategy();
+	//			else
 					this.strategy = new MostPossibleWordsStrategy();
 			}
 			else {

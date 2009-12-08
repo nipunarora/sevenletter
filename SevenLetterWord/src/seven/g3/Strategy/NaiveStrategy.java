@@ -12,6 +12,9 @@ import seven.g3.ScrabbleValues;
 import seven.ui.SecretState;
 
 public class NaiveStrategy extends Strategy {
+	
+
+	private static final boolean DEBUG = false;
 
 	protected static final int NUM_LETTERS_BEFORE_STRATEGY = 2;
 
@@ -28,8 +31,8 @@ public class NaiveStrategy extends Strategy {
 
 		// Find the best word we can make when we get a new letter.
 		if (numLetters > totalLetters) {
-			System.out.println("Got a new letter. Update best word.");
-			System.out.println(totalLetters(letters) + " " + numLetters);
+			if(DEBUG) System.out.println("Got a new letter. Update best word.");
+			if(DEBUG) System.out.println(totalLetters(letters) + " " + numLetters);
 			totalLetters = numLetters;
 			PriorityQueue<Word> possibleWords = kb.findMatchingWord(letters,
 					totalLetters);
@@ -37,7 +40,7 @@ public class NaiveStrategy extends Strategy {
 			Word newBest = possibleWords.peek();
 
 			if (newBest != null && newBest.getScore() > bestWord.getScore()) {
-				System.out.println(newBest.getWord() + ": "
+				if(DEBUG) System.out.println(newBest.getWord() + ": "
 						+ newBest.getScore()
 						+ " is the best word we can currently make.");
 
@@ -49,7 +52,7 @@ public class NaiveStrategy extends Strategy {
 
 	@Override
 	public int calculateBidAmount(Letter bidLetter,
-			HashMap<Character, Integer> letters) {
+			HashMap<Character, Integer> letters, int paidThisRound) {
 
 		// Just bid on letters based on value for the first few letters.
 		if (totalLetters < NUM_LETTERS_BEFORE_STRATEGY)
@@ -62,17 +65,17 @@ public class NaiveStrategy extends Strategy {
 		Word newBest = best.peek();
 
 		if (newBest != null)
-			System.out.println("Best word with " + bidLetter.getAlphabet()
+			if(DEBUG) System.out.println("Best word with " + bidLetter.getAlphabet()
 					+ ": " + newBest.getWord() + ": " + newBest.getScore()
 					+ " points");
 		else
-			System.out.println("No possible words yet");
+			if(DEBUG) System.out.println("No possible words yet");
 
 		if (newBest != null && newBest.compare(newBest, bestWord) < 0) {
 			// Can make a better word with this letter.
 			// Bid the difference in points between our previous best word
 			// And the new best word.
-			System.out.println("We can gain "
+			if(DEBUG) System.out.println("We can gain "
 					+ (newBest.getScore() - bestWord.getScore()) + " points");
 			return newBest.getScore() - bestWord.getScore();
 
@@ -81,43 +84,6 @@ public class NaiveStrategy extends Strategy {
 			return 0;
 		}
 
-	}
-
-	@Override
-	public int calculateOthersLetterWorth(Letter bidLetter, int playerID) {
-		// Naive method. Always bid letter amount.
-		return ScrabbleValues.letterScore(bidLetter.getAlphabet());
-	}
-
-	@Override
-	public int calculatePersonalLetterWorth(Letter bidLetter) {
-		// Naive method. Always bid letter amount.
-		return ScrabbleValues.letterScore(bidLetter.getAlphabet());
-	}
-
-	@Override
-	public PriorityQueue<Word> findPossibleWords() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public PriorityQueue<Word> findPossibleWords(Letter letter) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public PriorityQueue<Word> findPossibleWordsOther(int playerID) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public PriorityQueue<Word> findPossibleWordsOther(int playerID,
-			Letter letter) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	private int totalLetters(HashMap<Character, Integer> letters) {
@@ -132,25 +98,30 @@ public class NaiveStrategy extends Strategy {
 	public String returnWord(HashMap<Character, Integer> myLetters)  {
 		String rv = "";
 
-		System.out.println("===============");
-		System.out.println("G3 has the following letters:");
+		if(DEBUG) System.out.println("===============");
+		if(DEBUG) System.out.println("G3 has the following letters:");
 		for (Character c : myLetters.keySet()) {
-			System.out.println("\t" + c + "\t\t" + myLetters.get(c));
+			if(DEBUG) System.out.println("\t" + c + "\t\t" + myLetters.get(c));
 		}
-		System.out.println("===============");
+		if(DEBUG) System.out.println("===============");
 
 		PriorityQueue<Word> matchingWords = kb.findMatchingWord(myLetters,
 				totalLetters);
 		Word w = matchingWords.peek();
 
 		if (w != null) {
-			System.out.println("Word:  " + w.getWord() + ";  " + w.getScore());
+			if(DEBUG) System.out.println("Word:  " + w.getWord() + ";  " + w.getScore());
 			rv = w.getWord();
 		} else {
-			System.out.println("Major error somewhere");
+			if(DEBUG) System.out.println("Major error somewhere");
 		}
 
 		return rv;
+	}
+	
+	public boolean hasFailed()
+	{
+		return false;
 	}
 
 }

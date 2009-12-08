@@ -7,9 +7,9 @@ import seven.g2.miner.LetterMine.LetterSet;
 
 public class WordGroup {
 
-	private ArrayList<String>[] wordsByLength;
+	private ArrayList<ScrabbleWord>[] wordsByLength;
 	private LetterSet ls;
-	
+
 	/**
 	 * @return the ls
 	 */
@@ -18,7 +18,8 @@ public class WordGroup {
 	}
 
 	/**
-	 * @param ls_ the ls to set
+	 * @param ls_
+	 *            the ls to set
 	 */
 	public void setLetterSet(LetterSet ls_) {
 		ls = ls_;
@@ -61,26 +62,31 @@ public class WordGroup {
 	/**
 	 * @return the wordsByLength
 	 */
-	public ArrayList<String>[] getWordsByLength() {
+	public ArrayList<ScrabbleWord>[] getWordsByLength() {
 		return wordsByLength;
 	}
 
 	/**
-	 * @param wordsByLength_ the wordsByLength to set
+	 * @param wordsByLength_
+	 *            the wordsByLength to set
 	 */
-	public void setWordsByLength(ArrayList<String>[] wordsByLength_) {
+	public void setWordsByLength(ArrayList<ScrabbleWord>[] wordsByLength_) {
 		wordsByLength = wordsByLength_;
 	}
-	
-	public String[] getWords(){
-		if(wordsByLength == null){
-			return ls.getWords();
-		}else{
-			ArrayList<String> allWords = new ArrayList<String>();
-			for (int i = 0; i < wordsByLength.length; i++) {
-				allWords.addAll(wordsByLength[i]);
+
+	public ScrabbleWord[] getWords() {
+		if (wordsByLength == null) {
+			if (ls != null) {
+				return ls.getScrabbleWords();
+			} else {
+				return new ScrabbleWord[] {};
 			}
-			return allWords.toArray(new String[]{});
+		} else {
+			ArrayList<ScrabbleWord> allWords = new ArrayList<ScrabbleWord>();
+			for (int i = 0; i < wordsByLength.length; i++) {
+					allWords.addAll(wordsByLength[i]);
+			}
+			return allWords.toArray(new ScrabbleWord[] {});
 		}
 	}
 }

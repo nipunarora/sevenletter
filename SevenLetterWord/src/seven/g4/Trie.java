@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Trie {
     
-    private Vertex root;
+    protected Vertex root;
 
     /**
      * @author yeyangever
@@ -14,7 +14,11 @@ public class Trie {
      * children: child vertices
      */
     
-
+    
+    /**
+     * @author yeyangever
+     * Used to record suffix in the tree structure
+     */
     
     protected class Vertex {
         protected int words;
@@ -117,7 +121,7 @@ public class Trie {
      * 
      * @param word The word to be added.
      */
-    public void addWord(String word) {
+    protected void addWord(String word) {
         addWord(root, word);
     }
     
@@ -178,6 +182,10 @@ public class Trie {
     	return cur.children[index];
     }
     
+    
+    
 }
+
+
     
 

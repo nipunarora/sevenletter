@@ -174,6 +174,7 @@ public class Grep {
 		}
 	}
 
+	/**  E-12 A,I-9  O-8 N,R,T -6*/
 	public static void findWordsWithEAIONRTOnly()
 	{
 		File f = new File(
@@ -208,10 +209,42 @@ public class Grep {
 		
 		filterRepeating(exceptMap);
 	}
+	
+	/* NRT - frequency 4 , DLSU - frequency - 2 */
+	public static void findWordsWithNRTDLSUOnly()
+	{
+		File f = new File(
+		"C:\\Users\\shilpa\\workspace\\7Letters\\src\\seven\\g3\\KnowledgeBase\\smallwordlist.txt");
+		//compile("[JKQZXDLSUAE][JKQZXDLSUAE][JKQZXDLSUAE][JKQZXDLSUAE][JKQZXDLSUAE][JKQZXDLSUAE][JKQZXDLSUAE]"); // Ans - QUEZALS
+		//compile("[DLSUAEI][DLSUAEI][DLSUAEI][DLSUAEI][DLSUAEI][DLSUAEI][DLSUAEI]"); // ans - AUDILES
+		compile("[AOIBCFHMPVWY][AIOBCFHMPVWY][AIOBCFHMPVWY][AIOBCFHMPVWY][AIOBCFHMPVWY][AIOBCFHMPVWY][AIOBCFHMPVWY]"); // ans - OPACIFY
+		try {
+			grep(f);
+		} catch (IOException x) {
+			System.err.println(f + ": " + x);
+		}
+		filterRepeating();
+	}
+	
+//	public static void findWordsWithNRTDLSUOnly()
+//	{
+//		File f = new File(
+//		"C:\\Users\\shilpa\\workspace\\7Letters\\src\\seven\\g3\\KnowledgeBase\\smallwordlist.txt");
+//		compile("[NRTDLSU][NRTDLSU][NRTDLSU][NRTDLSU][NRTDLSU][NRTDLSU][NRTDLSU]");
+//		try {
+//			grep(f);
+//		} catch (IOException x) {
+//			System.err.println(f + ": " + x);
+//		}
+//		//filterRepeating();
+//	}
+	
+	
 	public static void main(String[] args) {
 	
 	//	findWordsWithEAIONRTOnly(f);		
-		findWordsWithEAIONRTWithExceptions();
+		//findWordsWithEAIONRTWithExceptions();
+		findWordsWithNRTDLSUOnly();
 		for (String s : matchingWords) {
 			
 			System.out.println(s);

@@ -26,7 +26,8 @@ public final class ScrabbleValues {
 	public static int letterScore(Character letter)
     {
         int score = 0;
-        switch(letter)
+        Character upperLetter = Character.toUpperCase(letter);
+        switch(upperLetter)
         {
             case 'E': score = 1;break;
             case 'A': score = 1;break;
@@ -70,7 +71,8 @@ public final class ScrabbleValues {
 	public static int getLetterFrequency(Character letter)
 	{
         int freq = 0;
-        switch(letter)
+        Character upperLetter = Character.toUpperCase(letter);
+        switch(upperLetter)
         {
             case 'E': freq = 12;break;
             case 'A': freq = 9;break;

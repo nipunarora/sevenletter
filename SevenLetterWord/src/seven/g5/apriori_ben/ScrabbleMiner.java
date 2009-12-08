@@ -23,11 +23,11 @@ public class ScrabbleMiner {
         public static void main(String[] args) {
                 Logger l = Logger.getLogger(ScrabbleMiner.class);
                 DataMine mine = null;
-                mine = new LetterMine("src/seven/g5/super-small-wordlist.txt");//src/seven/g5/data/FilteredWords.txt");
+                mine = new LetterMine("src/seven/g5/data/FilteredWords.txt");//src/seven/g5/super-small-wordlist.txt");
                 mine.buildIndex();
                 ItemSet[] answer = mine.aPriori(0.000001);
                 LetterSet i = (LetterSet) mine.getCachedItemSet(args);
-                System.out.println("alive and well: " + answer.length + " itemsets total");
+                //System.out.println("alive and well: " + answer.length + " itemsets total");
                 if (null != i) {
                         String[] words = i.getWords();
                         System.out.format(
@@ -35,7 +35,7 @@ public class ScrabbleMiner {
                                         new Object[]{i.getKey(), words.length}
                         );
                         for (String w : words) {
-                                System.out.println(w);
+                                //System.out.println(w);
                         }
                 } else {
                         System.out.format(

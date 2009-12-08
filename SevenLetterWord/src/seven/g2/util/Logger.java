@@ -101,8 +101,8 @@ public final class Logger {
 	private void printLogMessage(LogLevel level, Object o) {
 		Date d = new Date(System.currentTimeMillis());
 		String message =  d + " -- " + myLogClass.toString();
-		if(level != LogLevel.DEBUG)
-			message += "\n";
+//		if(level != LogLevel.DEBUG)
+//			message += "\n";
 		message += "[" + level + "] " + o;
 		System.out.println(message);
 	}

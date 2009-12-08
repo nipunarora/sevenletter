@@ -6,26 +6,41 @@ import java.util.ArrayList;
  * Scrabble Word Class encapsulates word and score
  */
 public class ScrabbleWord implements Comparable<ScrabbleWord> {
+	/**
+	 * 
+	 */
+	public ScrabbleWord() {
+	}
+	/**
+	 * @param word_
+	 */
+	public ScrabbleWord(String word_) {
+		setWord(word_);
+	}
+
 	String word;
 	int score;
 	
 	/**
 	 * Return the probability of forming this word
-	 * @param free Array of all of the letters that we know exist to be grabbed
-	 * @param owned Array of all of the letters that we have
+	 * @param is Array of all of the letters that we know exist to be grabbed
+	 * @param string Array of all of the letters that we have
 	 * @return
 	 */
-	public double getProbability(char[] free, char[] owned)
+	public double getProbability(int[] is, String string)
 	{
 		double p = 1;
+		double b = 1;
 		ArrayList<Character> lettersToGet = new ArrayList<Character>();
 		ArrayList<Character> freeLetters = new ArrayList<Character>();
 		for(Character c : word.toCharArray())
 			lettersToGet.add(c);
-		for(Character c : free)
-			freeLetters.add(c);
-		
-		for(Character c : owned)
+		for(int i =0;i<is.length;i++)
+		{
+			for(int j=0;j<is[i];j++)
+				freeLetters.add((char) ('A' + i));
+		}
+		for(Character c : string.toCharArray())
 			if(lettersToGet.contains(c))
 				lettersToGet.remove(c);
 		
@@ -38,13 +53,17 @@ public class ScrabbleWord implements Comparable<ScrabbleWord> {
 					n++;
 			}
 			if(n==0)
-				return 0;
+				return -1;
 			else
-				p *= n/freeLetters.size();
+			{
+				p *= n;
+				b *= freeLetters.size();
+			}
 			freeLetters.remove(c);
 		}
-		return p;
+		return p/b;
 	}
+	
 	@Override
 	public int compareTo(ScrabbleWord o) {
 		return score - o.score;

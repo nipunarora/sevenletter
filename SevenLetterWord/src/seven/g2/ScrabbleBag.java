@@ -2,12 +2,15 @@ package seven.g2;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
 import seven.g2.miner.LetterMine.LetterSet;
 import seven.g2.util.ScrabbleUtility;
+import seven.g2.util.ScrabbleWord;
 import seven.g2.util.WordGroup;
 import seven.g2.util.WordList;
 
@@ -24,13 +27,12 @@ public class ScrabbleBag {
 	 * For each letter maintain count of how many were seen This includes
 	 * auctioned letters + personal hidden letters
 	 */
-	private int[] letterToTileCountSeen = new int[26];
-	private int[] lettersLeft = new int[26];
-	private double[] estimatedTilesLeft = new double[26];
+	public int[] letterToTileCountSeen = new int[26];
+	public int[] lettersLeft = new int[26];
 
-	private int totalSeenTiles;
+	public int totalSeenTiles;
 
-	private int totalUnknownTiles;
+	public int totalUnknownTiles;
 
 	/**
 	 * Constructor Initializes counts
@@ -117,6 +119,56 @@ public class ScrabbleBag {
 		return 0;
 	}
 
+//	/**
+//	 * Filters and returns list of words which are possible given the current
+//	 * state of scrabble bag
+//	 * 
+//	 * @param possStrings
+//	 * @param currString
+//	 * @return
+//	 */
+//	public ArrayList<ScrabbleWord>[] filterWords(String[] possStrings, String currString) {
+//		HashMap<Character, Integer> charCounts = new HashMap<Character, Integer>();
+//		for (Character c : currString.toCharArray()) {
+//			Integer count = charCounts.get(c);
+//			if (count == null) {
+//				count = 0;
+//			}
+//			charCounts.put(c, count - 1);
+//		}
+//
+//		ArrayList<ScrabbleWord>[] filteredWords = new ArrayList[7];
+//		for(int i=0;i<7;i++){
+//			filteredWords[i] = new ArrayList<ScrabbleWord>();
+//		}
+//		
+//		for (String s : possStrings) {
+//			HashMap<Character, Integer> currCharCounts = (HashMap<Character, Integer>) charCounts
+//					.clone();
+//			for (Character c : s.toCharArray()) {
+//				Integer count = currCharCounts.get(c);
+//				if (count == null) {
+//					count = 0;
+//				}
+//				currCharCounts.put(c, count + 1);
+//			}
+//
+//			boolean isValid = true;
+//			for (Character c : currCharCounts.keySet()) {
+//				if (currCharCounts.get(c) > lettersLeft[c - 'A']) {
+//					isValid = false;
+//					break;
+//				}
+//			}
+//
+//			if (isValid) {
+//				filteredWords[s.length()-1].add(new ScrabbleWord(s));
+//			}
+//		}
+//
+//		return filteredWords;
+//	}
+	
 	/**
 	 * Filters and returns list of words which are possible given the current
 	 * state of scrabble bag
@@ -125,7 +177,7 @@ public class ScrabbleBag {
 	 * @param currString
 	 * @return
 	 */
-	public ArrayList<String>[] filterWords(String[] possStrings, String currString) {
+	public ArrayList<ScrabbleWord>[] filterWords(ScrabbleWord[] possStrings, String currString) {
 		HashMap<Character, Integer> charCounts = new HashMap<Character, Integer>();
 		for (Character c : currString.toCharArray()) {
 			Integer count = charCounts.get(c);
@@ -135,12 +187,13 @@ public class ScrabbleBag {
 			charCounts.put(c, count - 1);
 		}
 
-		ArrayList<String>[] filteredWords = new ArrayList[7];
+		ArrayList<ScrabbleWord>[] filteredWords = new ArrayList[7];
 		for(int i=0;i<7;i++){
-			filteredWords[i] = new ArrayList<String>();
+			filteredWords[i] = new ArrayList<ScrabbleWord>();
 		}
 		
-		for (String s : possStrings) {
+		for (ScrabbleWord sw : possStrings) {
+			String s = sw.getWord();
 			HashMap<Character, Integer> currCharCounts = (HashMap<Character, Integer>) charCounts
 					.clone();
 			for (Character c : s.toCharArray()) {
@@ -160,7 +213,7 @@ public class ScrabbleBag {
 			}
 
 			if (isValid) {
-				filteredWords[s.length()-1].add(s);
+				filteredWords[s.length()-1].add(new ScrabbleWord(s));
 			}
 		}
 
@@ -175,6 +228,14 @@ public class ScrabbleBag {
 		wg.setWordsByLength(filterWords(wg.getWords(), currString));
 	}
 		
+	public int getSumTileCount(Set<Character> chars){
+		int count = 0;
+		for(Character c: chars){
+			count+= lettersLeft[c - 'A'];
+		}
+		
+		return count;
+	}
 	
 	/**
 	 * 
@@ -198,52 +259,57 @@ public class ScrabbleBag {
 	}
 
 	public static void main(String[] args) {
-		System.out.println("1");
-		WordList wl = new WordList();
 
-		System.out.println("2:"+ System.currentTimeMillis());
-		ScrabbleBag sb = new ScrabbleBag(1, 0, new Character[] {});
-
-		LetterSet ls1 = wl.getLetterGroup("B");
-		LetterSet ls2 = wl.getLetterGroup("BB");
-		
-		System.out.println(ls1.getTotalOccurrences());
-		System.out.println(ls2.getTotalOccurrences());
-
-
-		System.out.println("3:"+System.currentTimeMillis());
-		int total = 0;
-		ArrayList<String>[] words = sb.filterWords(ls1.getWords(), "");
-		for (int i = 0; i < 7; i++) {
-			total+= words[i].size();
+	}
+	
+	/**
+	 * Gets expected score for one word
+	 * @param sw
+	 * @param currString
+	 * @return
+	 */
+	public double getExpectedScore(ScrabbleWord sw, String currString){
+		return sw.getScore() * sw.getProbability(lettersLeft, currString);
+	}
+	
+	/**
+	 * Returns averaged of expected scores of all words
+	 * @param words
+	 * @param currString
+	 * @return
+	 */
+	public double getExpectedScore(ScrabbleWord[] words, String currString){
+		double sumExpectedScore = 0;
+		for (int i = 0; i < words.length; i++) {
+			sumExpectedScore += getExpectedScore(words[i], currString);
 		}
-		System.out.println(total);
-		total = 0;
-		words = sb.filterWords(ls2.getWords(), "");
-		for (int i = 0; i < 7; i++) {
-			total+= words[i].size();
-		}
-
-		System.out.println(total);
 		
-		System.out.println("4:"+System.currentTimeMillis());
-		
-		sb.updateSeenTileInformation('B');
-		
-		total = 0;
-		words = sb.filterWords(ls1.getWords(), "");
-		for (int i = 0; i < 7; i++) {
-			total+= words[i].size();
+		return sumExpectedScore;
+	}
+	
+	/**
+	 * Returns averaged of expected scores of all words
+	 * @param words
+	 * @param currString
+	 * @return
+	 */
+	public double getExpectedScore(WordGroup wg, String currString){
+		return getExpectedScore(wg.getWords(), currString);
+	}
+	
+	/**
+	 * Returns sum of probability of all words
+	 * @param words
+	 * @param currString
+	 * @return
+	 */
+	public double getSumProbability(WordGroup wg, String currString){
+		ScrabbleWord[] words = wg.getWords();
+		double sumProb = 0;
+		for (int i = 0; i < words.length; i++) {
+			sumProb += words[i].getProbability(lettersLeft, currString);
 		}
-		System.out.println(total);
-		total = 0;
-		words = sb.filterWords(ls2.getWords(), "");
-		for (int i = 0; i < 7; i++) {
-			total+= words[i].size();
-		}
-
-		System.out.println(total);
-		System.out.println("5:"+System.currentTimeMillis());
-		//System.out.println(sb.getProbabilityOfAuction('A', 2));
+		
+		return sumProb;
 	}
 }
