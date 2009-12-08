@@ -90,7 +90,7 @@ public class G1Player implements Player{
 	Boolean first = true;
 	ArrayList<PlayerBids> RefList= new ArrayList<PlayerBids>();
 	ArrayList<String> RefPlayerList= new ArrayList<String>();
-	
+
 	int player_id = -1;
 	int current_auction = 0;
 	int total_auctions = 0;
@@ -203,10 +203,20 @@ public class G1Player implements Player{
 				}
 			}
 			// initialize
-			for (Letter l : openletters) {
-				won(l, 0);
-			}
         	Arrays.fill(reachable, true);
+			if (!openletters.isEmpty()) {
+				String[] terms = new String[openletters.size()];
+				for ( int i = 0; i < openletters.size(); i++) {
+					Letter l = openletters.get(i);
+					won(l, 0);
+					terms[i] = l.getAlphabet().toString();
+				}
+				LetterSet reachableSet = getLetterSet(terms);
+				int updateCount = updateDrawPossibilities(letterBag, letterRack, reachableSet);
+				l.debug("Currently reachable words using all letters: " + updateCount);
+			}
+
+
 			l.debug("Seven letter size: " + sevenletterlist.size());
 			l.info("Total bidding rounds: " +  total_auctions);
 			first = false;
@@ -290,7 +300,7 @@ public class G1Player implements Player{
 	protected void updateBiddingStatistics(ArrayList<PlayerBids> bidList){
 		if(!bidList.isEmpty()){
 			PlayerBids LastBid= bidList.get(bidList.size()-1);
-			 
+
 			int max = 0;
 			for(int i : LastBid.getBidvalues()){
 				if(i > max)
@@ -319,13 +329,13 @@ public class G1Player implements Player{
 			int tentative = (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
 			if(Math.abs(tentative - average_bid) > std_deviation)
 				tentative = (int)(tentative + average_bid)/2;
-			//return 
+			//return
 			return tentative;
 		} else {
 			return 0;
 		}
 	}
-	
+
 	double average(){
 		double sum = 0;
 		for(int i : maxBids){
@@ -333,7 +343,7 @@ public class G1Player implements Player{
 		}
 		return sum / auctions_played;
 	}
-	
+
 	double stddev(){
 		double avg = average();
 		double diff = 0;
@@ -365,31 +375,49 @@ public class G1Player implements Player{
 
 			char c = LastBid.getTargetLetter().getAlphabet();
 			LetterSet set = getLetterSet(c);
-			int bagarray[] = arrayFromMap(letterBag);
-			int rackarray[] = arrayFromMap(letterRack);
 			// update words that contain this letter
-			l.debug("Updating counters for " + set.getSupport() + " words");
-			int ctr = 0;
+			l.debug("Updating counters for " + set.getSupport() + " of all words");
 			int changed = 0;
-			for (int idx : set.getTransactions()) {
-				if (reachable[idx]) {
-					ctr++;
-					long newscore =  getWord(idx).drawPossibilities(bagarray, rackarray);
-					if (newscore != word_draw_possibilities[idx]) {
-						changed++;
-						word_draw_possibilities[idx] = newscore;
-					}
-				}
-			}
-			l.debug("Updated counters for " +changed + " out of " + ctr + " words");
+			changed = updateDrawPossibilities(letterBag, letterRack, set);
+			l.debug("Updated counters for " +changed +  " words");
 
     	}
 	}
 
+	/**
+	 * @param bagarray
+	 * @param rackarray
+	 * @param updated_words
+	 * @return number of words with updated possibility count
+	 */
+	private int updateDrawPossibilities(int[] bagarray, int[] rackarray, LetterSet set) {
+		int changed = 0;
+		if (null == set) return 0;
+		for (int idx : set.getTransactions()) {
+			if (reachable[idx]) {
+				long newscore =  getWord(idx).drawPossibilities(bagarray, rackarray);
+				if (newscore != word_draw_possibilities[idx]) {
+					changed++;
+					word_draw_possibilities[idx] = newscore;
+				}
+			}
+		}
+		return changed;
+	}
+
+
+	private int updateDrawPossibilities(CountMap<Character> currentBag, CountMap<Character> currentRack, LetterSet reachableSet) {
+		int [] bagarray = arrayFromMap(currentBag);
+		int[] rackarray = arrayFromMap(currentRack);
+		return updateDrawPossibilities(bagarray, rackarray, reachableSet);
+	}
+
 	private void won(Letter letterWon, int amount) {
 		Character c = letterWon.getAlphabet();
-		assert(0 <= letterBag.decrement(c));
-		assert(0 <= letterRack.increment(c));
+		int bag_has = letterBag.decrement(c);
+		assert(0 <= bag_has);
+		int rack_has = letterRack.increment(c);
+		assert(0 <= rack_has);
 		score -= amount;
 		cumulative_bid += amount;
 	}
@@ -448,12 +476,12 @@ public class G1Player implements Player{
     	score += bestscore;
         // tell "bid" that we are about to begin a new round
     	first = true;
-    	
+
     	/**
     	 * Adding to History
     	 */
     	l.debug("The size of the history is " + RefList.size());
-    	
+
     	if(RefList.size()== RefPlayerList.size()*7*10 ){
     		for(int i=0; i<RefPlayerList.size()*7*10;i++){
     			int winAmount= RefList.get(i).getWinAmmount();
@@ -463,7 +491,7 @@ public class G1Player implements Player{
     			hist.add(ourBid, winAmount, winnerStatus);
     		}
     	}
-    		
+
     	return bestword;
     }
     /*
