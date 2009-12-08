@@ -784,6 +784,16 @@ public class G1Player implements Player{
     		return (int) ( multiplier*(50 * lost_fraction) * (1 + 1/(double) auctions_left));
 		}
     }
+    public static class LossBidderMultiplier2 extends G1Player{
+    	protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
+    		double multiplier=1;
+    		if(stupidCounter>=3){
+    			//stupidCounter=0;
+    			multiplier=2;
+    		}
+    		return (int) ( multiplier*(50 * lost_fraction) * (1 + 1/(double) auctions_left));
+		}
+    }
     public static class TimeLossBidder extends G1Player {
 
 		/* (non-Javadoc)
