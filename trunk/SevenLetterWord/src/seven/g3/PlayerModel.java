@@ -8,7 +8,7 @@ public class PlayerModel {
     public HashMap<Character, Integer> knownLetters;
     public int score = 100;
     
-    public static final Boolean DEBUG = true;
+    public static final Boolean DEBUG = false;
     
     public PlayerModel(int hl)
     {

@@ -104,7 +104,7 @@ public final class Logger {
 		if(level != LogLevel.DEBUG)
 			message += "\n";
 		message += "[" + level + "] " + o;
-		System.out.println(message);
+		//System.out.println(message);
 	}
 	/**
 	 * Fatal error, the worst kind.

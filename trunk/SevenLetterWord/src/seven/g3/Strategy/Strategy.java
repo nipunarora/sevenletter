@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.PriorityQueue;
 
+import seven.g3.Util;
 import seven.g3.KnowledgeBase.*;
 import seven.ui.*;
 
@@ -27,7 +28,7 @@ public abstract class Strategy
 		//this.letters = letters;
 		
 		bestWord = new Word("");
-		System.out.println(bestWord.getWord()+ " " + bestWord.getScore());
+		Util.println(bestWord.getWord()+ " " + bestWord.getScore());
 	}
 	
 	/**
@@ -44,7 +45,7 @@ public abstract class Strategy
 	 * @param bidLetter The letter being bid on.
 	 * @return The amount of our bid.
 	 */
-	abstract public int calculateBidAmount(Letter bidLetter, HashMap<Character, Integer> letters);
+	abstract public int calculateBidAmount(Letter bidLetter, HashMap<Character, Integer> letters, int paidThisRound);
 	
 	/**
 	 *  How much should we bid for the letter
@@ -52,7 +53,7 @@ public abstract class Strategy
 	 * @param bidLetter The letter being bid on.
 	 * @return How much the letter is worth to us.
 	 */
-	abstract public int calculatePersonalLetterWorth(Letter bidLetter);
+	//abstract public int calculatePersonalLetterWorth(Letter bidLetter);
 	
 	/**
 	 *  How much we think a letter is worth to another player.
@@ -60,14 +61,14 @@ public abstract class Strategy
 	 * @param playerID The ID number of another player.
 	 * @return How much we think that letter is worth to another player.
 	 */
-	abstract public int calculateOthersLetterWorth(Letter bidLetter, int playerID);
+	//abstract public int calculateOthersLetterWorth(Letter bidLetter, int playerID);
 	
 	/**
 	 * Finds a list of all words we can make with our current
 	 * set of letters.
 	 * @return A HashSet of Words.
 	 */
-	abstract public PriorityQueue<Word> findPossibleWords();
+	//abstract public PriorityQueue<Word> findPossibleWords();
 	
 	/**
 	 *  Finds a list of all words we can make
@@ -76,7 +77,7 @@ public abstract class Strategy
 	 * @param letter A letter.
 	 * @return A list of all possible words we can make using our secret set, plus letter.
 	 */
-	abstract public PriorityQueue<Word> findPossibleWords(Letter letter);
+	//abstract public PriorityQueue<Word> findPossibleWords(Letter letter);
 	
 	/**
 	 * Finds a list of all possible words another player
@@ -84,7 +85,7 @@ public abstract class Strategy
 	 * @param playerID Number identifying another player
 	 * @return All words that player can make.
 	 */
-	abstract public PriorityQueue<Word> findPossibleWordsOther(int playerID);
+	//abstract public PriorityQueue<Word> findPossibleWordsOther(int playerID);
 	
 	/**
 	 * Finds a list of all possible words another player
@@ -93,7 +94,9 @@ public abstract class Strategy
 	 * @param letter A letter
 	 * @return All words that player can make if he gets that letter.
 	 */
-	abstract public PriorityQueue<Word> findPossibleWordsOther(int playerID, Letter letter);
+	//abstract public PriorityQueue<Word> findPossibleWordsOther(int playerID, Letter letter);
 	
 	abstract public String returnWord(HashMap<Character, Integer> myLetters );
+	
+	abstract public boolean hasFailed();
 }

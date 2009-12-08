@@ -24,7 +24,7 @@ public class OldPlayer2 implements Player {
 	private int maxRandomIncrementForBid = 1;
 	private int minLettersToHaveToBidAggressively = 3;
 	private int minTilesForAnalysis = 3;
-	private Logger log = new Logger(Logger.LogLevel.FATAL, this.getClass());
+	private Logger log = new Logger(Logger.LogLevel.NONE, this.getClass());
 
 	/** Information relevant across rounds **/
 	private int totalNoOfRounds;
@@ -98,10 +98,10 @@ public class OldPlayer2 implements Player {
 			init(total_rounds, PlayerList, secretstate, playerID);
 		} else {
 			noOfAuctionsLeft--;
+			
+			/** Update self/others based on previous auction result **/
+			updatePreviousBidResult(PlayerBidList);
 		}
-
-		/** Update self/others based on previous auction result **/
-		updatePreviousBidResult(PlayerBidList);
 
 		int bidAmount = 0;
 
@@ -302,7 +302,7 @@ public class OldPlayer2 implements Player {
 						.insertCharacterInLexicographicPosition(currString, pb
 								.getTargetLetter().getAlphabet());
 
-				log.debug("Current String = " + currString);
+				log.fatal("Current String = " + currString);
 
 				calculateBestCurrentWord();
 
