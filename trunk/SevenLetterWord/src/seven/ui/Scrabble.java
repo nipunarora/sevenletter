@@ -18,7 +18,7 @@ public class Scrabble {
      static Dictionary sowpods;
      ArrayList<Letter> wordbag;
      static {
-   // 	 initDict();
+    	 initDict();
      }
      public Scrabble()
      {
