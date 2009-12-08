@@ -7,14 +7,14 @@ import seven.g3.KnowledgeBase.KnowledgeBase;
 import seven.g3.KnowledgeBase.Word;
 import seven.ui.Letter;
 import seven.ui.PlayerBids;
-import seven.ui.ScrabbleValues;
+import seven.g3.ScrabbleValues;
 import seven.ui.SecretState;
 
 public class OpeningStrategy extends Strategy {
-	
+
 	boolean failed;
 	public static final int MIN_FREQ = 250;
-	
+
 	public OpeningStrategy(KnowledgeBase kb, int totalRounds,
 			ArrayList<String> playerList) {
 		super(kb, totalRounds, playerList);
@@ -30,7 +30,7 @@ public class OpeningStrategy extends Strategy {
 		}
 		else {
 			if(letters.size() == 0 || ScrabbleValues.getLetterFrequency(bidLetter.getAlphabet()) == 1) {
-				/* either first letter or bidLetter is common; bid value is fine 
+				/* either first letter or bidLetter is common; bid value is fine
 				 * TODO:  maybe bid higher for fewer players?
 				 **/
 				return bidLetter.getValue();
@@ -42,7 +42,7 @@ public class OpeningStrategy extends Strategy {
 					/* firstLetter should have just one letter, but I don't know a better way to extract from Set */
 					a = c.charValue();
 				}
-				
+
 				if(ScrabbleValues.getLetterFrequency(a) <= 1) {
 					return bidLetter.getValue();
 				}
@@ -77,7 +77,7 @@ public class OpeningStrategy extends Strategy {
 			failed = true;
 
 	}
-	
+
 	public boolean hasFailed()
 	{
 		return failed;
