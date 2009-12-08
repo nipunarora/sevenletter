@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 
 import seven.ui.CSVReader;
-import seven.ui.ScrabbleValues;
+import seven.g3.ScrabbleValues;
 import seven.g3.Util;
 import seven.g3.KnowledgeBase.*;
 
