@@ -102,7 +102,7 @@ public class G1Player implements Player{
 	double std_deviation;
 	ArrayList<TrackedPlayer> otherPlayers;
 
-	private Logger l = Logger.getLogger(this.getClass());
+	protected Logger l = Logger.getLogger(this.getClass());
 	private boolean[] reachable = new boolean[TOTAL_WORDS];
 	private long[] word_draw_possibilities = Arrays.copyOf(base_probability_counters, base_probability_counters.length);
 
@@ -768,8 +768,30 @@ public class G1Player implements Player{
 		protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
 			return (int) ( (50 * lost_fraction) * (1 + 1/(double) auctions_left));
 		}
+    }
 
+    public static class TimeLossBidder extends G1Player {
 
+		/* (non-Javadoc)
+		 * @see seven.g1.G1Player#makeBid(int, double, double, int, seven.ui.Letter)
+		 */
+		@Override
+		protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
+			double loss = 50.0 * lost_fraction;
+			double time_left = (double) auctions_left / (double) this.total_auctions;
+			double letters_left = (double) letters_needed / 7.0;
+			double timefactor = 1.0;
+			if (letters_left > time_left) {
+				double ratio = letters_left / time_left;
+				timefactor = 0.5 * Math.ceil(2 * ratio); // round up to nearest half
+				l.debug(String.format("Letter fraction %.2f, time fraction %.2f: boosting by %.2f",
+							new Object[]{letters_left, time_left, timefactor}
+						)
+				);
+			}
+
+			return (int) ( loss * timefactor);
+		}
     }
 
 }
