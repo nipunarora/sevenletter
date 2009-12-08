@@ -50,6 +50,7 @@ public class G1Player implements Player{
 	/*
 	 * Shared precalculated information for all instances of our player
 	 */
+	static int stupidCounter=0;
 	String wordReturned= new String();
 	static final History hist= new History();
 	static final LetterMine mine = new LetterMine("src/seven/g1/super-small-wordlist.txt");
@@ -184,6 +185,7 @@ public class G1Player implements Player{
 			score = secretstate.getScore();
 			cumulative_bid = 0;
 			std_deviation = 5;
+			stupidCounter = 0;
 
 
 			if(otherPlayers == null){
@@ -285,7 +287,8 @@ public class G1Player implements Player{
 
     	if(!couldreach.isEmpty()){  // there is a seven-letter word we can reach with this letter
 			updateBiddingStatistics(PlayerBidList);
-    		int bid = makeBid(letters_needed, kept_fraction, lost_fraction, total_auctions - current_auction + 1, bidLetter);
+    			
+			int bid = makeBid(letters_needed, kept_fraction, lost_fraction, total_auctions - current_auction + 1, bidLetter);
     		return bid;
     	} else if (currenttargets.isEmpty()) { // there is no reachable 7-letter
     		int value = scoreIncrementIfAcquire(bidLetter);
@@ -420,6 +423,7 @@ public class G1Player implements Player{
 		assert(0 <= rack_has);
 		score -= amount;
 		cumulative_bid += amount;
+		stupidCounter = 0;
 	}
 
 	private void lost(PlayerBids bid) {
@@ -441,6 +445,7 @@ public class G1Player implements Player{
 		adversary.score -= bid.getWinAmmount();
 		adversary.letterRack.increment(c);
 		adversary.openLetters.add(letterLost);
+		stupidCounter++;
 	}
 
 	/* Interface required method #3
@@ -769,7 +774,16 @@ public class G1Player implements Player{
 			return (int) ( (50 * lost_fraction) * (1 + 1/(double) auctions_left));
 		}
     }
-
+    public static class LossBidderMultiplier extends G1Player{
+    	protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
+    		double multiplier=1;
+    		if(stupidCounter>=3){
+    			//stupidCounter=0;
+    			multiplier=3;
+    		}
+    		return (int) ( multiplier*(50 * lost_fraction) * (1 + 1/(double) auctions_left));
+		}
+    }
     public static class TimeLossBidder extends G1Player {
 
 		/* (non-Javadoc)
