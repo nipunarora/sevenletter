@@ -13,7 +13,7 @@ public class MetaStrategy extends Strategy {
 	
 	protected int strat;
 	
-	public static boolean DEBUG = false;
+	public static boolean DEBUG = true;
 	
 	public static final int STRAT_TARGET = 0;
 	public static final int STRAT_SEVEN = 1;

@@ -20,9 +20,11 @@ public class TargetStrategy extends Strategy {
 	int totalLengths;
 	char previousChar;
 	
-	public static final double FREQUENCY_MODIFIER = 6;
-	public static final double FREQ_CUTOFF = 0.15;
+	public static final double BID_MODIFIER = 2.5;
+	public static final double FREQ_CUTOFF = 0.1;
 	public static final int MAX_LETTERS_BEFORE_CHANGE = 7;
+	public static final double LAST_INSTANCE_MULTIPLIER = 1.25;
+	public static final double RARE_LETTER_MULTIPLIER = 1.2;
 	
 	/**
 	 * Targets a predefined list of words.
@@ -62,8 +64,8 @@ public class TargetStrategy extends Strategy {
 			w = possibleWords.poll();
 			if(w.getLength() >= minLength)
 				newTargets.add(w);
-			else
-				stop = true;
+			//else
+			//	stop = true;
 		}
 		
 		initialize(kb, totalRounds, playerList, newTargets);
@@ -98,8 +100,8 @@ public class TargetStrategy extends Strategy {
 			w = possibleWords.poll();
 			if(w.getLength() >= minLength)
 				newTargets.add(w);
-			else
-				stop = true;
+			//else
+			//	stop = true;
 		}
 		
 		initialize(kb, totalRounds, playerList, newTargets);
@@ -239,7 +241,8 @@ public class TargetStrategy extends Strategy {
 		//if(freq == 1)
 		//	return letterScore;
 		
-		double proportion = freq / numPossibleWords();
+		double proportion = freq / maxFreq();
+		Util.println("Freq: " + freq + " Max: " + maxFreq());
 		
 		//Don't bid if it's not in enough words, proportionally
 		if(proportion < FREQ_CUTOFF)
@@ -247,16 +250,16 @@ public class TargetStrategy extends Strategy {
 		
 		Util.println("Freq proportion " + proportion);
 		
-		int initialBid = (int)((double)(letterScore + 50/7) * (proportion));
+		int initialBid = (int)((double)((letterScore + myLetterScore(letters) + 50)/7) * (proportion) * BID_MODIFIER);
 		
 		//Bid more for rare letters
 		if(kb.isLastInstance(letter))
 		{
-			initialBid *= 2;
+			initialBid *= LAST_INSTANCE_MULTIPLIER;
 		}
 		else if(kb.isRare(letter))
 		{
-			initialBid *= 1.5;
+			initialBid *= RARE_LETTER_MULTIPLIER;
 		}
 		
 		//Bid proportional to how many words in the list have that letter
@@ -267,6 +270,18 @@ public class TargetStrategy extends Strategy {
 	public int clamp(int value, int min, int max)
 	{
 		return Math.min(min, Math.max(value, max));
+	}
+	
+	public int myLetterScore(HashMap<Character, Integer> letters)
+	{
+		int sum = 0;
+		
+		for(Character c : letters.keySet())
+		{
+			sum+= letters.get(c);
+		}
+		
+		return sum;
 	}
 
 	@Override
@@ -361,6 +376,19 @@ public class TargetStrategy extends Strategy {
 		return targets.size();
 	}
 	
+	public int maxFreq()
+	{
+		int max = 0;
+		
+		for(Word word : targets)
+		{
+				//Closer to making word, higher value
+				max+= word.getWord().length() - lettersRemaining(word);
+		}
+		
+		return max;
+	}
+	
 	public static ArrayList<Word> commonWords()
 	{
 		ArrayList<Word> list = new ArrayList<Word>();
@@ -379,7 +407,7 @@ public class TargetStrategy extends Strategy {
 
 	public boolean hasFailed()
 	{
-		Util.println("Num possible  " + numPossibleWords());
+		System.out.println("Num possible" + numPossibleWords());
 		// Fails when it has enough letters, or when all targets are unreachable.
 		if(totalLetters > MAX_LETTERS_BEFORE_CHANGE || numPossibleWords() <= 0)
 			return true;

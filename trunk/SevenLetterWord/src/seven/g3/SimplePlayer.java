@@ -55,7 +55,7 @@ public class SimplePlayer implements seven.ui.Player {
 		Util.println("===============");
 
 		PriorityQueue<Word> matchingWords = KnowledgeBase.findMatchingWord(myLetters,
-				totalLetters);
+				totalLetters());
 		Word w = matchingWords.peek();
 
 		if (w != null) {
@@ -66,6 +66,7 @@ public class SimplePlayer implements seven.ui.Player {
 		}
 
 		/* assume that new round is about to start? */
+		totalLetters = 0;
 		myLetters.clear();
 		turn = 0;
 		paidThisRound = 0;
@@ -127,7 +128,7 @@ public class SimplePlayer implements seven.ui.Player {
 
 		// Special case for when we are the last to get a letter, since Bid is
 		// not called again after that round.
-		if (totalLetters == 6 && turn == PlayerList.size() * 7 - 1) {
+		if (totalLetters() == 6 && turn == PlayerList.size() * 7 - 1) {
 			addLetter(bidLetter.getAlphabet());
 			totalLetters++;
 		}
@@ -151,9 +152,9 @@ public class SimplePlayer implements seven.ui.Player {
 		turn++;
 		int calculateBidAmount;
 		
-		if(totalLetters != 7) {
+		if(totalLetters() != 7) {
 			// Update our knowledge base
-			strat.update(bidLetter, PlayerBidList, secretstate, totalLetters,
+			strat.update(bidLetter, PlayerBidList, secretstate, totalLetters(),
 						myLetters);
 	
 			calculateBidAmount = strat.calculateBidAmount(bidLetter, myLetters, paidThisRound);
@@ -227,6 +228,18 @@ public class SimplePlayer implements seven.ui.Player {
 		addLetter(copy, l);
 
 		return copy;
+	}
+	
+	public int totalLetters()
+	{
+		int sum = 0;
+		
+		for(Character c : myLetters.keySet())
+		{
+			sum+= myLetters.get(c); 
+		}
+		
+		return sum;
 	}
 
 }

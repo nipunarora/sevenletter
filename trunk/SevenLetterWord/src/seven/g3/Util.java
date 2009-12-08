@@ -2,7 +2,7 @@ package seven.g3;
 
 public class Util {
 
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 
 	public static void println(String s) {
 		if (DEBUG)
