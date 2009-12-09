@@ -287,7 +287,7 @@ public class G1Player implements Player{
 
     	if(!couldreach.isEmpty()){  // there is a seven-letter word we can reach with this letter
 			updateBiddingStatistics(PlayerBidList);
-    			
+
 			int bid = makeBid(letters_needed, kept_fraction, lost_fraction, total_auctions - current_auction + 1, bidLetter);
     		return bid;
     	} else if (currenttargets.isEmpty()) { // there is no reachable 7-letter
@@ -318,25 +318,12 @@ public class G1Player implements Player{
 	}
 
 	protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
-		double cutoff = 0.4;
-		double bids_per_letter_remaining = letters_needed > 0 ? (double) auctions_left/letters_needed : 0;
-		if(6 == openletters.size() && 3 > bids_per_letter_remaining){
-			return 50;
+		double multiplier=1;
+		if(stupidCounter>=3){
+			//stupidCounter=0;
+			multiplier=2;
 		}
-		// if we're low on options, take anything that doesn't hurt us
-		if (2 > bids_per_letter_remaining) {
-			l.debug("Using lower acceptability threshold: bid ratio is " + bids_per_letter_remaining);
-			cutoff = 0;
-		}
-		if(kept_fraction > cutoff) {
-			int tentative = (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
-			if(Math.abs(tentative - average_bid) > std_deviation)
-				tentative = (int)(tentative + average_bid)/2;
-			//return
-			return tentative;
-		} else {
-			return 0;
-		}
+		return (int) ( multiplier*(50 * lost_fraction) * (1 + 1/(double) auctions_left));
 	}
 
 	double average(){
@@ -762,6 +749,30 @@ public class G1Player implements Player{
         {
             l.fatal("Could not load dictionary!",e);
         }
+    }
+
+    public static class OriginalBidder extends G1Player {
+    	protected int makeBid(int letters_needed, double kept_fraction, double lost_fraction, int auctions_left, Letter bidLetter) {
+    		double cutoff = 0.4;
+    		double bids_per_letter_remaining = letters_needed > 0 ? (double) auctions_left/letters_needed : 0;
+    		if(6 == openletters.size() && 3 > bids_per_letter_remaining){
+    			return 50;
+    		}
+    		// if we're low on options, take anything that doesn't hurt us
+    		if (2 > bids_per_letter_remaining) {
+    			l.debug("Using lower acceptability threshold: bid ratio is " + bids_per_letter_remaining);
+    			cutoff = 0;
+    		}
+    		if(kept_fraction > cutoff) {
+    			int tentative = (50+bidLetter.getValue()-cumulative_bid)/(7-openletters.size());
+    			if(Math.abs(tentative - average_bid) > std_deviation)
+    				tentative = (int)(tentative + average_bid)/2;
+    			//return
+    			return tentative;
+    		} else {
+    			return 0;
+    		}
+    	}
     }
 
     public static class LossBidder extends G1Player {
