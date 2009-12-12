@@ -58,16 +58,37 @@ Duplicate letters.  No, I'm not going to explain how I initially screwed it up, 
 
 Yay, \LaTeX!
 % good thing we're not using Google, after all...
-$$\prod_{i}{n_{i}\choose r_{i}}$$
+$$\prod_{i}{n_{i}\choose r_{i}}*\left( \sum_{i}r_{i}\right)!$$
+
+Note that the factorial at the end for permutation is useless, since we're not actually doing the rest of the math, but it's useless at a constant rate for all the words that matter (seven-letter words will all have draw sequences of the same length, just differing likelihoods).
 
 \section{Bidding Strategies}
+
+\subsection{When to Bid}
+
+If we can reach a seven-letter word, only bid on helpful letters, no matter how thin the probability seems.
+
+Otherwise, increment.
+
 \subsection{Gain-based strategies}
+
+
 
 \subsection{Loss-based strategies}
 
-\section{Observations/Lessons Learned}
+\subsection{Incremental Strategy}
 
 \section{Tournament Results} % NIPUN
+
+\section{Observations/Lessons Learned}
+
+\section{Possible Extensions}
+
+Well, it might be interesting to have more explicit probability calculations for the late-game situation where you're trying to decide between a profitable increment and an unlikely seven-letter word.
+
+You can't get an incredibly well-defined probability of getting what you need, but you can set an upper bound on it, which is all you need to see if the increment is worth more in expectation than trying for the 50-point bonus.  Very small enhancement, though.
+
+
 
 \section{Acknowledgements}
 
