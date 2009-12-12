@@ -61,7 +61,7 @@ Some words have probability 0--we can generally predict that.
 
 Yay, \LaTeX!
 % good thing we're not using Google, after all...
-$$\prod_{i}{n_{i}\choose r_{i}}*\left( \sum_{i}r_{i}\right)!$$
+$$\prod_{i=1}^{26}{n_{i}\choose r_{i}}*\left( \sum_{i}r_{i}\right)!$$
 
 Note that the factorial at the end for permutation is useless, since we're not actually doing the rest of the math, but it's useless at a constant rate for all the words that matter (seven-letter words will all have draw sequences of the same length, just differing likelihoods).
 
@@ -86,9 +86,11 @@ Which we didn't actually implement, but is obvious to talk about.
 
 And ranked.
 
+With replacement.
+
 \subsubsection{Word Draw Possibilities}
 
-The immediate problem here is that the possibilities count will virtually always go down when you acquire a new letter.
+The immediate problem here is that the possibilities count will virtually always go down when you acquire a new letter.  The best letters will reduce the count by only a small amount; the worst may reduce it to zero.
 
 Cutoff-based bidding, still based on the tile value.
 
@@ -103,27 +105,37 @@ These strategies successfully rescued our player from stinginess, allowing us to
 
 The obvious alternative to gain-based bidding is loss-based bidding: each time a letter is placed up for bid, we estimate how badly our chances of reaching a 7-letter word would be hurt by not acquiring it, then multiply that penalty by the benefit we would forgo (again, 50 points).  
 
+\subsubsection{Basic Calculation}
+
+Draw possibilities now - draw possibilities if this letter is removed from the bag.
+
 \subsubsection{Opportunity Cost}
 
 This strategy brings us back face to face with the problem we declined to solve earlier: how does the probability of a given sequence of letters being reached change with the number of remaining auctions?  
 
-Our solution was sort of unsatisfactory.
+Our solution was sort of unsatisfactory, but our efforts to improve on it largely failed.
 
 \subsubsection{Market Rates}
 
+In principle, if we are able to form a perfect estimate of the opportunity cost of passing on one auction, as well as the penalty for failing to acquire each letter, we should be able to perfectly calculate the value (in expectation) of each letter, and our player should perform well, at least on average.  However, since our estimates are imperfect, and we may be in competition with other players, we also attempt to keep track of how our bids compare to the ``market rate'' for each letter: if we are losing out on our bids consistently, we may be systematically underestimating the value of letters.
+
+We considered a number of tactics for adjusting our bidding to avoid falling behind on letter acquisition:
+
 \begin{enumerate}
-\item{} periodically boost our bid by some fixed amount or factor, to avoid consistently being outbid (and confound any opposing-team predictors)
-\item{} keep track of the number of letters acquired, and the number of bidding rounds, and boost our bid if we are behind the ``average'' rate of letter acquisition (that is, if more than $1/7$ of letters have been auctioned off, but we have only 1 or 0 letters on our rack).
-\item monitor our success rate on recent bids, and boost the bid by a fixed factor if we have been losing bidders some number of times in a row
-\item extend the previous strategy by maintaining (or continuing to escalate) the boost factor until we succeed on a bid.
+\item{} periodically boosting our bid by some fixed amount or factor, to avoid consistently being outbid (and confound any opposing-team predictors)
+\item{} keeping track of the number of letters acquired and the number of bidding rounds, and boosting our bid if we are behind the ``average'' rate of letter acquisition (that is, if more than $1/7$ of letters have been auctioned off, but we have only 1 or 0 letters on our rack).
+\item monitoring our success rate on recent bids, and boosting the bid by a fixed factor if we have been losing bidders some number of times in a row
+\item extending the previous strategy by maintaining (or continuing to escalate) the boost factor until we succeed on a bid.
 \end{enumerate}
 
-We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, 
+We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, so a relatively conservative modification to our bidding would suffice.  Our final player tracks the success or failure of each non-zero bid, and boosts its bids by a factor of 2 if the last three or more non-zero bids have been unsuccessful.
 
 
 \section{Tournament Results} % NIPUN
 
-\section{Observations/Lessons Learned}
+\section{Issues Encountered/Observations/Lessons Learned}
+
+Draw possibilities code had a bug early on which may have compromised some comparisons we made, but we are confident we ended up with a good solution.
 
 \section{Possible Extensions}
 
