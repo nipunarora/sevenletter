@@ -54,7 +54,10 @@ Cite Agrawal '94.  Note originally implemented for COMS E6111.
 
 Duplicate letters.  No, I'm not going to explain how I initially screwed it up, just how I eventually fixed it.
 
-\subsection{Probability Calculations} %BEN 
+\subsection{Probability and Reachability Calculations} %BEN 
+
+Some words have probability 0--we can generally predict that.
+
 
 Yay, \LaTeX!
 % good thing we're not using Google, after all...
@@ -66,17 +69,57 @@ Note that the factorial at the end for permutation is useless, since we're not a
 
 \subsection{When to Bid}
 
-If we can reach a seven-letter word, only bid on helpful letters, no matter how thin the probability seems.
-
-Otherwise, increment.
+Our high-level bidding strategy is simple: we query the {\it a priori}-generated data mine using the set of letters we have in our rack at the moment, and determine what (if any) seven-letter words include them.  If any of these seven-letter words remains reachable (no matter how unlikely the possibility), we will bid only on letters that help us reach one of those words.
+If no such word exists, we simply bid incrementally: we find the best-scoring word we can make with our existing rack and the best-scoring word we could make if we acquired the letter currently up for bid, then bid the difference (if positive) between the two scores.  This strategy, much discussed in class, has a worst-case behavior of zero gain, and (in contrast to any strategy that takes into account what other non-seven-letter words we might hypothetically form with other letters) is extremely simple to implement.
 
 \subsection{Gain-based strategies}
 
+Our initial approach to bidding (once we gave up on the ``bid 0 and make the best of it'' strategy) attempted to bid based on how much closer acquiring a particular letter would bring us to having a seven-letter word.  
 
+This strategy is intuitively reasonable: if we succeed in every bid, we will have paid a cost no higher than the benefit (50 points) that we expect from forming a seven-letter word.
+
+\subsubsection{Word Count}
+
+Which we didn't actually implement, but is obvious to talk about.
+
+\subsubsection{Summed Word Probabilities}
+
+And ranked.
+
+\subsubsection{Word Draw Possibilities}
+
+The immediate problem here is that the possibilities count will virtually always go down when you acquire a new letter.
+
+Cutoff-based bidding, still based on the tile value.
+
+Cutoff-based bidding, based on Manuel's  % kind of optimistic ;-)
+estimate of how much things were worth. 
+
+\subsubsection{Summary}
+
+These strategies successfully rescued our player from stinginess, allowing us to form seven-letter words with increasing frequency.  The cost they imposed, however, was disproportionate to the benefit: our player generally averaged significantly positive scores, but would fall far behind those of other groups.
 
 \subsection{Loss-based strategies}
 
-\subsection{Incremental Strategy}
+The obvious alternative to gain-based bidding is loss-based bidding: each time a letter is placed up for bid, we estimate how badly our chances of reaching a 7-letter word would be hurt by not acquiring it, then multiply that penalty by the benefit we would forgo (again, 50 points).  
+
+\subsubsection{Opportunity Cost}
+
+This strategy brings us back face to face with the problem we declined to solve earlier: how does the probability of a given sequence of letters being reached change with the number of remaining auctions?  
+
+Our solution was sort of unsatisfactory.
+
+\subsubsection{Market Rates}
+
+\begin{enumerate}
+\item{} periodically boost our bid by some fixed amount or factor, to avoid consistently being outbid (and confound any opposing-team predictors)
+\item{} keep track of the number of letters acquired, and the number of bidding rounds, and boost our bid if we are behind the ``average'' rate of letter acquisition (that is, if more than $1/7$ of letters have been auctioned off, but we have only 1 or 0 letters on our rack).
+\item monitor our success rate on recent bids, and boost the bid by a fixed factor if we have been losing bidders some number of times in a row
+\item extend the previous strategy by maintaining (or continuing to escalate) the boost factor until we succeed on a bid.
+\end{enumerate}
+
+We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, 
+
 
 \section{Tournament Results} % NIPUN
 
