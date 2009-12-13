@@ -20,10 +20,9 @@
 
 \date{December 14, 2009}
 \maketitle
-\begin{figure}
-	\centering
+\begin{center}
 	\includegraphics[width=0.7\textwidth]{cover}
-\end{figure}
+\end{center}
 
 
 \newpage
@@ -108,6 +107,16 @@ We can readily generate, at any time, the list of seven-letter words that we cou
 
 Obviously, we need some way to judge the relative ease of reaching each of the possible seven-letter words.  Ideally, this should be easy to recalculate as the letter distribution in the bag and on our rack shifts over the course of the round.
 
+
+\subsubsection{Naive Sequence Probability Approach}
+
+As a first approximation, we can trivially calculate the probability of any specific letter being drawn from the letter bag on the current turn.  By taking the product of this probability for all remaining letters in a word, we can easily calculate an approximation of the probability of that word being reached.  This calculation has several disadvantages: most obviously, it ignores the changing denominator of the probability calculation as letters are drawn, as well as the changing numerator for repeated letters.  It also takes no account of the fact that other letters may be drawn between the ones we are interested in.  To balance the first disadvantage, it has the advantage of being very simple and fast to calculate for many words; for the second, we observe that the impact of this effect is roughly the same for all words, so we should still be able use this value to compare different words, since both will be wrong in the same way.
+
+\subsubsection{Sequence-Counting Approach}
+
+The principal defect of the naive approach is that it fails to take account of the effects of drawing without replacement.  This can be addressed by making the calculations somewhat more complicated.
+% XXX genius prose there...
+
 For a given configuration of the letter-bag and our own rack, we can calculate the number of possible draw sequences that would lead to a given word using fairly simple combinatorics--simple, at least, if we consider only draws that are relevant to the word itself.  For each a letter index $i$ between 1 (``A'') and 26 (``Z''), let $w_{i}$ be the number of appearances of that letter in a given word, $b_{i}$ be the number of copies of that letter remaining in the bag (or at least, potentially remaining there), and $r_{i}$ be the number of copies of that letter that we currently have on our rack.  Then the number of possible draw sequences that can lead to our being able to form this word is
 
 % good thing we're not using Google, after all...
@@ -144,9 +153,11 @@ And ranked.
 
 With replacement.
 
-\subsubsection{Word Draw Possibilities}
+\subsubsection{Summed Word Draw Possibilities}
 
 The immediate problem here is that the possibilities count will virtually always go down when you acquire a new letter.  The best letters will reduce the count by only a small amount; the worst may reduce it to zero.
+
+Easy to see: how many of our routes to 7 letters go through this letter?
 
 Cutoff-based bidding, still based on the tile value.
 
