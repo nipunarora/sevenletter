@@ -56,7 +56,16 @@ Duplicate letters.  No, I'm not going to explain how I initially screwed it up, 
 
 \subsection{Probability and Reachability Calculations} %BEN 
 
-Some words have probability 0--we can generally predict that.
+Each time a letter is picked up by another player, some words become impossible for our player to reach, no matter which tiles are available in the remaining auctions.  The data-mine structure (once letter repetition is allowed) actually provides a very easy way to find these words: any word that would require all the copies of this letter that are already in our rack, and all of the copies of this letter that were \textit{previously} in the letter bag, is now unreachable.  More explicitly, to find the newly-unreachable words, we must
+\begin{enumerate}
+\item find the number of copies of this letter that were in the letter bag before this tile was drawn (which may any where from 1 to 12)
+\item find the number of copies of this letter that we have in our own rack
+\item take the sum of these two numbers, and query the data mine for all words that include that number of this letter.
+% that's kind of incoherent, Ben
+\item if there are any such words, add them to our set of ``unreachable'' words.
+\end{enumerate}
+
+This technique will generally result in some words being marked as ``unreachable'' multiple times, but since the transition from reachable to unreachable is one-way, and the state maintenance is cheap (a simple array of booleans, indexed by word ID), the redundancy is of minimal concern.
 
 
 Yay, \LaTeX!
@@ -64,6 +73,8 @@ Yay, \LaTeX!
 $$\prod_{i=1}^{26}{n_{i}\choose r_{i}}*\left( \sum_{i}r_{i}\right)!$$
 
 Note that the factorial at the end for permutation is useless, since we're not actually doing the rest of the math, but it's useless at a constant rate for all the words that matter (seven-letter words will all have draw sequences of the same length, just differing likelihoods).
+
+IF sum of $\sum r_{i} + \sum h_{i}> 7$ then $p = 0$ regardless.
 
 \section{Bidding Strategies}
 
