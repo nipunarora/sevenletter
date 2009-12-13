@@ -21,6 +21,8 @@
 \date{December 14, 2009}
 \maketitle
 
+%OK, so a cute graphic or two here would be nice...
+
 \newpage
 \setcounter{tocdepth}{2}
 \tableofcontents
@@ -62,7 +64,7 @@ Cite Agrawal '94.  Note originally implemented for COMS E6111.
 
 Duplicate letters.  No, I'm not going to explain how I initially screwed it up, just how I eventually fixed it.
 
-\subsection{Probability and Reachability Calculations} %BEN 
+\subsection{Unreachable Words}
 
 Each time a letter is picked up by another player, some words become impossible for our player to reach, no matter which tiles are available in the remaining auctions.  The data-mine structure (once letter repetition is allowed) actually provides a very easy way to find these words: any word that would require all the copies of this letter that are already in our rack, and all of the copies of this letter that were \textit{previously} in the letter bag, is now unreachable.  More explicitly, to find the newly-unreachable words, we must
 \begin{enumerate}
@@ -75,14 +77,24 @@ Each time a letter is picked up by another player, some words become impossible 
 
 This technique will generally result in some words being marked as ``unreachable'' multiple times, but since the transition from reachable to unreachable is one-way, and the state maintenance is cheap (a simple array of booleans, indexed by word ID), the redundancy is of minimal concern.
 
+\subsection{Probability Calculations} %BEN 
 
-Yay, \LaTeX!
+We can readily generate, at any time, the list of seven-letter words that we could reach this round.  However, at the beginning of a round, this list will contain both ``zymurgy'' and ``euchres,'' which are clearly not equally probable words for us to reach by the end of the round.
+
+Obviously, we need some way to judge the relative ease of reaching each of the possible seven-letter words.  Ideally, this should be easy to recalculate as the letter distribution in the bag and on our rack shifts over the course of the round.
+
+For a given configuration of the letter-bag and our own rack, we can calculate the number of possible draw sequences that would lead to a given word using fairly simple combinatorics--simple, at least, if we consider only draws that are relevant to the word itself.  For each a letter index $i$ between 1 (``A'') and 26 (``Z''), let $w_{i}$ be the number of appearances of that letter in a given word, $b_{i}$ be the number of copies of that letter remaining in the bag (or at least, potentially remaining there), and $r_{i}$ be the number of copies of that letter that we currently have on our rack.  Then the number of possible draw sequences that can lead to our being able to form this word is
+
 % good thing we're not using Google, after all...
-$$\prod_{i=1}^{26}{n_{i}\choose r_{i}}*\left( \sum_{i}r_{i}\right)!$$
+$$\prod_{i=1}^{26}{b_{i}\choose w_{i} - r_{i}}*\left( \sum_{i}w_{i} - r_{i}\right)!$$
 
 Note that the factorial at the end for permutation is useless, since we're not actually doing the rest of the math, but it's useless at a constant rate for all the words that matter (seven-letter words will all have draw sequences of the same length, just differing likelihoods).
 
-IF sum of $\sum r_{i} + \sum h_{i}> 7$ then $p = 0$ regardless.
+IF sum of $ \sum_{i}w_{i} - r_{i} > 7 - \sum_{i} r_{i}$ then $p = 0$ regardless (but this should already be excluded by the data-mining query).
+
+caveat--hidden letters given to other players.  This doesn't change the possible draws, but it does change the number of rounds we have to try to get one of those draw sequences to happen.
+
+Converting this to a concrete probability would involve a lot more math, but would iron out the problem of accounting for opportunity cost.  (Though not the problem of competition.)
 
 \section{Bidding Strategies}
 
