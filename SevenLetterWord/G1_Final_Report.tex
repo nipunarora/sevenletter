@@ -27,19 +27,27 @@
 \newpage
 
 \section{ Introduction }
-In which we say what everybody already knows.  Paragraph text separated by double newlines.
+
+The aim of the project is to obtain a player that performs as well as possible in a modified version of Scrabble. In this version, the aim is still to form a word with the highest possible score from the letters that we have, but players must bid on the letters to get them, following the rules of the Vickrey auction.
 
 \subsection{Word List}
+
+For a word to be considered valid, it must be included in the provided dictionary. One of the challenges in the project will be searching words efficiently in this list. Therefore, the shorter we can make the list without altering the content, the faster our search for valid words will be. This is accomplished by:
+
+\begin{enumerate}
+\item Removing words that cannot be formed with the set of letters in Scrabble
+\item Removing palindromes --words that contain the same letters but in different order
+\end{enumerate}
+
 \subsection{Maximizing Seven-Letter Words}
+
+The reward for getting a seven-letter word is 50 points plus the score for each of the letters used in the word, whereas the score for a word with less than seven letters consists only of the sum of the individual letter scores. This means that forming a seven-letter word as often as possible is vital, since the difference in score is very big, and players will not be able to rely on non seven-letter words if they intend to win.
 
 \subsection{Minimizing Costs}
 
-We can list things in a list thus:
-\begin{enumerate}
-\item Firstly
-\item Secondly
-\item Finally
-\end{enumerate}
+Once it is clear that players must try to get seven-letter words, the next issue will be what cost we are willing to pay for the letters that allow us to form those words. The fact that we have to bid to get letters implies that we might end up forming a seven-letter word and still lose points if we are not careful while bidding so we do not bid more than we will get back.
+
+On the other hand, other players might use different strategies that force us to be more aggressive in our bidding strategy, so it will be important to balance the amount we bid according to the current situation, and static strategies will clearly be unsuccessful. 
 
 \section{Framework}
 
@@ -137,6 +145,7 @@ We considered a number of tactics for adjusting our bidding to avoid falling beh
 \item{} keeping track of the number of letters acquired and the number of bidding rounds, and boosting our bid if we are behind the ``average'' rate of letter acquisition (that is, if more than $1/7$ of letters have been auctioned off, but we have only 1 or 0 letters on our rack).
 \item monitoring our success rate on recent bids, and boosting the bid by a fixed factor if we have been losing bidders some number of times in a row
 \item extending the previous strategy by maintaining (or continuing to escalate) the boost factor until we succeed on a bid.
+\item keeping track of the bidding statistics (average and standard deviation) to ensure that our bid is not too far from the average bid value, preventing under-bidding and over-bidding
 \end{enumerate}
 
 We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, so a relatively conservative modification to our bidding would suffice.  Our final player tracks the success or failure of each non-zero bid, and boosts its bids by a factor of 2 if the last three or more non-zero bids have been unsuccessful.
