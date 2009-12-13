@@ -20,8 +20,11 @@
 
 \date{December 14, 2009}
 \maketitle
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth]{cover}
+\end{figure}
 
-%OK, so a cute graphic or two here would be nice...
 
 \newpage
 \setcounter{tocdepth}{2}
@@ -37,8 +40,8 @@ The aim of the project is to obtain a player that performs as well as possible i
 For a word to be considered valid, it must be included in the provided dictionary. One of the challenges in the project will be searching words efficiently in this list. Therefore, the shorter we can make the list without altering the content, the faster our search for valid words will be. This is accomplished by:
 
 \begin{enumerate}
-\item Removing words that cannot be formed with the set of letters in Scrabble
-\item Removing palindromes --words that contain the same letters but in different order
+\item removing words that cannot be formed with the set of letters in Scrabble
+\item removing palindromes --words that contain the same letters but in different order
 \end{enumerate}
 
 \subsection{Maximizing Seven-Letter Words}
@@ -47,13 +50,35 @@ The reward for getting a seven-letter word is 50 points plus the score for each 
 
 \subsection{Minimizing Costs}
 
-Once it is clear that players must try to get seven-letter words, the next issue will be what cost we are willing to pay for the letters that allow us to form those words. The fact that we have to bid to get letters implies that we might end up forming a seven-letter word and still lose points if we are not careful while bidding so we do not bid more than we will get back.
+Once it is clear that players must try to get seven-letter words, the next issue will be what cost we are willing to pay for the letters that allow us to form those words. The fact that we have to bid to get letters implies that we might end up forming a seven-letter word and still lose points if we are not careful while bidding so we do not bid more than we will get back. 
 
 On the other hand, other players might use different strategies that force us to be more aggressive in our bidding strategy, so it will be important to balance the amount we bid according to the current situation, and static strategies will clearly be unsuccessful. 
 
 \section{Framework}
 
+There are two main tasks that our player must perform:
+
+\begin{enumerate}
+\item infer information from the current situation
+\item decide the next action using that information
+\end{enumerate}
+
+The player framework that deals with the first task, including data structures and inference algorithms, is explained in the following section, while the tactics used to succeed in getting the necessary letters are explained in the Bidding Strategies section. 
+
 \subsection{Player Architecture}
+
+The basic concept our player architecture revolves around is that the more information we have, the better decisions we can make. Thus, we need to store many diverse facts so we can use that information to decide our next step. These include:
+
+\begin{enumerate}
+\item letters we currently have
+\item letters that we assume are in the letter bag, thus considered obtainable
+\item letters we know other players have
+\item our current score and other players score
+\item how much we have bid so far in the current round
+\item how much all players have been bidding in the current round, as well as in past rounds
+\item which words we can reach with the letters we have and the ones that are left in the bag
+\item probability of reaching a word, based on the required letters for it
+\end{enumerate}
 
 \subsection{A Priori Algorithm} % BEN
 \subsubsection{As originally designed}
