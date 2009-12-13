@@ -179,13 +179,13 @@ We considered a number of tactics for adjusting our bidding to avoid falling beh
 
 \begin{enumerate}
 \item{} periodically boosting our bid by some fixed amount or factor, to avoid consistently being outbid (and confound any opposing-team predictors)
-\item{} keeping track of the number of letters acquired and the number of bidding rounds, and boosting our bid if we are behind the ``average'' rate of letter acquisition (that is, if more than $1/7$ of letters have been auctioned off, but we have only 1 or 0 letters on our rack).
+\item{} keeping track of the number of letters acquired and the number of bidding rounds, and boosting our bid if we are behind the ``average'' rate of letter acquisition (that is, if more than $1/7$ of letters have been auctioned off, but we have only 1 or 0 letters on our rack). % shouldn't it be 1/no_players ?
 \item monitoring our success rate on recent bids, and boosting the bid by a fixed factor if we have been losing bidders some number of times in a row
 \item extending the previous strategy by maintaining (or continuing to escalate) the boost factor until we succeed on a bid.
 \item keeping track of the bidding statistics (average and standard deviation) to ensure that our bid is not too far from the average bid value, preventing under-bidding and over-bidding
 \end{enumerate}
 
-We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, so a relatively conservative modification to our bidding would suffice.  Our final player tracks the success or failure of each non-zero bid, and boosts its bids by a factor of 2 if the last three or more non-zero bids have been unsuccessful.
+We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, so a relatively conservative modification to our bidding would suffice.  Our final player tracks the success or failure of each non-zero bid, and boosts its bids by a factor of 2 if the last three or more non-zero bids have been unsuccessful. %again, maybe we should have used no_players instead of 3
 
 
 \section{Tournament Results} % NIPUN
