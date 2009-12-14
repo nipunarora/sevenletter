@@ -184,7 +184,9 @@ The obvious alternative to gain-based bidding is loss-based bidding: each time a
 
 \subsubsection{Basic Calculation}
 
-Draw possibilities now - draw possibilities if this letter is removed from the bag.
+This is done by checking, for every reachable seven-letter word, how its probability is affected if we remove the offered letter from the bag. These differences are added, and this result divided by the total sum of probabilities for reachable word gives us a measure of how our chances to get to a seven letter-word would be reduced if we let go this letter. Let $p_i$ be the current probability of word i, $np_i$ the new probability if we remove the offered letter from the bag, and $R$ the set of all currently reachable seven-letter words, then we will bid:
+
+$$\frac{\sum_{i \in R}p_i - np_i}{\sum_{i \in R}p_i} * 50$$
 
 \subsubsection{Opportunity Cost}
 
