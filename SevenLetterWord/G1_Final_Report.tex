@@ -191,9 +191,9 @@ $$\frac{\sum_{i \in R}p_i - n_i}{\sum_{i \in R}p_i} * 50$$
 
 \subsubsection{Opportunity Cost}
 
-This strategy brings us back face to face with the problem we declined to solve earlier: how does the probability of a given sequence of letters being reached change with the number of remaining auctions?  
+This strategy brings us back face to face with the problem we declined to solve earlier: how does the probability of a given sequence of letters being reached change with the number of remaining auctions? We had a global history data to help us emphasize how necessary a letter was to us, and that was the remaining number of auctions. As the round draws closer to its end, we want to get our seven letter words before the remaining auctions are so few that we end up having to take letters we do not want. 
 
-Our solution was sort of unsatisfactory, but our efforts to improve on it largely failed.
+Initially we were using $\frac{auctions\_left}{letters\_needed}$ . Our solution was sort of unsatisfactory, but our efforts to improve on it largely failed, though we did make use of the number of auctions left to avoid falling behind and getting randomly assigned letters. We multiplied our bid by $1+\frac{1}{auctions\_left}$, so we would bid higher towards the end, guaranteeing that we will complete our seven letters relatively ahead of time.
 
 \subsubsection{Market Rates}
 
@@ -211,27 +211,8 @@ We considered a number of tactics for adjusting our bidding to avoid falling beh
 
 We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, so a relatively conservative modification to our bidding would suffice.  Our final player tracks the success or failure of each non-zero bid, and boosts its bids by a factor of 2 if the last three or more non-zero bids have been unsuccessful. These values were empirically decided. The multiplier had to make our bids more aggressive without making us overbid extensively, for which we assessed 2 was the best value after many runs agains the other players. The number of turns to boost our bid was decided upon after discussing the configuration of the tournaments that would be run, since it proved to give better results in terms of aggressiveness when playing against the other teams. 
 
-This strategy considered the recent history in the game. We also had a global history data to help us emphasize how necessary a letter was to us, and that was the remaining number of auctions. As the round draws closer to its end, we want to get our seven letter words before the remaining auctions are so few that we end up having to take letters we do not want. To avoid this, we multiplied our bid by $1+\frac{1}{auctions\_left}$, so we would bid higher towards the end, guaranteeing that we will complete our seven letters relatively ahead of time.
-
-
 \section{Tournament Results} % NIPUN
-	Our G1Player seems to do pretty well in almost all tournaments, ranking amongst the top teams on an average. We especially do well in tournaments with more opportunities to score seven letter words (i.e. more no of players). Overall we also seem to have form a high no of seven letter words. On the other hand relative to other tournaments our performance in tournaments with lesser no of players is not as good. This basically clearly shows that given a good chance of forming seven letter words, we are generally the most successful amongst the given teams and do well in terms of the score.
-	
-	To give a high level view of our performance in relation to other players we look at the 1 player each tournament, and 2 instances of each player tournament. Since they have all the players these two give a good idea of the performance of a player with respect to others. 
-	
-	\subsection{Performance in terms of Score}
-	
-	\includegraphics[width=1\textwidth]{T1Results}
-	\includegraphics[width=1\textwidth]{T2Results}
-	
-	While our performance in Tournament 1 where there was only 1 instance of each player, was really good, and it can be clearly seen that G1,G2 and G4Forward player are the candidates for the top slot. We outperform all teams in tournament 2 where there are 2 instances of each player hence a lot more opportunities to fom seven letter words. We observed that this behaviour was consistent in all tournament results and in some test cases we ran ourselves. We attribute our relatively poor behaviour in tournaments with lesser no of players to the fact that we did not properly account for the no of players in our bidding strategy. However, we still remain competitive in cases where there are less no of players.
-	
-	\subsection{Performance in terms of No. of Seven Letters}
-	
-	\includegraphics[width=0.8\textwidth]{SevenCount}
-	
-	While seven letter words are not the actual parameter of success, they are a huge contributing factor. We found that a high seven letter word count usually converted into a higher score for a player. Once again team 1 and team 2 are the top teams in forming the seven letter word. While we beat team 2 beats us in the no of seven letter words formed we beat them in the overall score at the end of the tournament.(Team 1 Cumulative Score: 33272, Team 2 Cumulative Score: 30461). We explain the significance of this statistic in the next section.
-	
+	Our G1Player seems to do pretty well in almost all tournaments, ranking amongst the top 2 teams on an average. We especially do well in tournaments with more opportunities to score seven letter words (i.e. more no of players). Overall we also seem to have formed the highest number of seven letter words out of all teams. On the other hand relative to other tournaments our performance in tournaments with lesser no of players is not as good. This basically clearly shows that given a good chance of forming seven letter words, we are generally the most successful amongst the given teams and do well in terms of the score. --Insert tables and graphs to illustrate above stuff
 	
 	Digging deeper into the tournament statistics we discovered that our success can basically be attributed to two factors:
 	--Insert Graphs
@@ -241,8 +222,6 @@ This strategy considered the recent history in the game. We also had a global hi
 \end{enumerate}
 	
 	We also found that despite the fact that we are penalized heavily when we do not make seven letter words, this does not end up crippling our player as we more than make up for it with a high strike rate of forming seven letter words and a relatively high score gain when we form seven letter words.-- Illustrate with graphs
-	
-	As suspected our performance is relativerly poor in one to one tournaments with one instance of each player. However, we do really well in the 5 instance version of a head to head tournament beating all other players in the tournament (in terms of overall score) by a fair margin :). We attribute our faliure in the 1v1 tournament to the fact that we did not properly account for low no of players and consequently low chances of forming seven letter words. This has again been highlighted in earlier graphs where we show that we are heavily penalized in cases where we do not form a seven letter word. In tournaments where the chances of forming a seven letter words are relatively less this effect gets compounded. However, it should still be noted that we are competitive even in those cases (i.e. trail by about 10%).
 	
 Special cases - One to one tournaments, all one player tournaments (do we want to speculate about the curious case of player 2 ) :P
 
