@@ -236,6 +236,7 @@ We considered a number of tactics for adjusting our bidding to avoid falling beh
 We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, so a relatively conservative modification to our bidding would suffice.  Our final player tracks the success or failure of each non-zero bid, and boosts its bids by a factor of 2 if the last three or more non-zero bids have been unsuccessful. %again, maybe we should have used no_players instead of 3
 
 
+
 \section{Tournament Results} % NIPUN
 	Our G1Player seems to do pretty well in almost all tournaments, ranking amongst the top teams on an average. We especially do well in tournaments with more opportunities to score seven letter words (i.e. more no of players). Overall we also seem to have form a high no of seven letter words. On the other hand relative to other tournaments our performance in tournaments with lesser no of players is not as good. This basically clearly shows that given a good chance of forming seven letter words, we are generally the most successful amongst the given teams and do well in terms of the score.
 	
@@ -254,6 +255,14 @@ We evaluated all of these approaches in mini-tournaments, against each other and
 	
 	While seven letter words are not the actual parameter of success, they are a huge contributing factor. We found that a high seven letter word count usually converted into a higher score for a player. Once again team 1 and team 2 are the top teams in forming the seven letter word. While we beat team 2 beats us in the no of seven letter words formed we beat them in the overall score at the end of the tournament.(Team 1 Cumulative Score: 33272, Team 2 Cumulative Score: 30461). We explain the significance of this statistic in the next section.
 	\subsection{Avg Bid Per Letter/ A deeper look}
+	\\ To further understand the results we look at avg amount paid by each player in the case when they form a seven letter word and in the case when they do not form a seven letter word. The source for both these tables were the first two tournaments. 
+	\begin{center}
+\\\includegraphics[width=0.8 \textwidth]{AVGBidSevenY}
+\end{center}
+\\ The table above shows the avg amount paid per letter by each team, the no of seven letter words formed by them and their cumulative gain for all rounds where they do return a valid seven letter word.(It would have been interesting to see the actual bids, however we can say intutively that on an average the bid amounts by each player is proportional to the amount they paid for it). Clearly G2 pays the highest for forming seven letter words and makes the max  
+	\begin{center}
+\includegraphics[width=0.6 \textwidth]{AVGBidSevenN}
+\end{center}
 	\subsection{Head to Head Analysis}
 	There were two kinds of head to head tournaments played , the first being 1 vs 1 where there was 1 instance of 2 players, and the other being 5 v 5 where there were 5 instances of each player. 
 
@@ -263,9 +272,13 @@ We evaluated all of these approaches in mini-tournaments, against each other and
 	In the 5v5 tournament we beat most players convincingly and only g2 and g4 give us a run for the money. For the sake of brevity we discuss our relative performance with them in the charts shown below.\\
 	\textbf{G1 vs G2}\\
 	The graph below
-	\includegraphics[width=1 \textwidth]{5v5option3G1G2}
+	\begin{center}
+\includegraphics[width=1 \textwidth]{5v5option3G1G2}
+\end{center}
 	\textbf{G1 vs G4 Forward}
-%	\includegraphics[width=1 \textwidth]{5v5optionG1G4}
+	\begin{center}
+\includegraphics[width=1 \textwidth]{5v5optionG1G4}
+\end{center}
 	\subsection{Competing against ourselves vs Competing with others}
 	\subsection{Summarizing Tournament Analysis}
 		
@@ -281,6 +294,10 @@ We evaluated all of these approaches in mini-tournaments, against each other and
 	As suspected our performance is relativerly poor in one to one tournaments with one instance of each player. However, we do really well in the 5 instance version of a head to head tournament beating all other players in the tournament (in terms of overall score) by a fair margin :). We attribute our faliure in the 1v1 tournament to the fact that we did not properly account for low no of players and consequently low chances of forming seven letter words. This has again been highlighted in earlier graphs where we show that we are heavily penalized in cases where we do not form a seven letter word. In tournaments where the chances of forming a seven letter words are relatively less this effect gets compounded. However, it should still be noted that we are competitive even in those cases (i.e. trail by about 10%).
 	
 Special cases - One to one tournaments, all one player tournaments (do we want to speculate about the curious case of player 2 ) :P
+
+\section{Issues Encountered/Observations/Lessons Learned}
+
+Draw possibilities code had a bug early on which may have compromised some comparisons we made, but we are confident we ended up with a good solution.
 
 \section{Issues Encountered/Observations/Lessons Learned}
 
