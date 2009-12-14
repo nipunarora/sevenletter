@@ -242,7 +242,7 @@ We evaluated all of these approaches in mini-tournaments, against each other and
 
 
 \section{Tournament Results} % NIPUN
-	Our G1Player seems to do pretty well in almost all tournaments, ranking amongst the top teams on an average. We especially do well in tournaments with more opportunities to score seven letter words (i.e. more no of players). Overall we also seem to have form a high no of seven letter words. On the other hand relative to other tournaments our performance in tournaments with lesser no of players is not as good. This basically shows that given a good chance of forming seven letter words, we are generally the most successful amongst the given teams and do well in terms of the score.
+	Our G1Player seems to do pretty well in almost all tournaments, ranking amongst the top teams on an average. We especially do well in tournaments with more opportunities to score seven letter words (i.e. more number of players). Overall we also seem to have form a high number of seven letter words. On the other hand relative to other tournaments our performance in tournaments with lesser number of players is not as good. This basically shows that given a good chance of forming seven letter words, we are generally the most successful amongst the given teams and do well in terms of the score.
 	
 	To give a high level view of our performance in relation to other players we look at the 1 player each tournament, and 2 instances of each player tournament. Since they have all the players these two give a good idea of the performance of a player with respect to others. 
 	
@@ -251,29 +251,29 @@ We evaluated all of these approaches in mini-tournaments, against each other and
 	\includegraphics[width=1\textwidth]{T1Results}
 	\includegraphics[width=1\textwidth]{T2Results}
 	
-	Our performance in Tournament 1 where there was only 1 instance of each player, was really good, and it can be clearly seen that G1,G2 and G4Forward player are the candidates for the top slot. However, we outperform all teams in tournament 2 where there are 2 instances of each player hence a lot more opportunities to fom seven letter words. We observed that this behaviour was consistent in all tournament results and in some test cases we ran ourselves. We attribute our relatively poor behaviour in tournaments with lesser no of players to the fact that we did not properly account for the no of players in our bidding strategy. However, we still remain competitive in cases where there are less no of players.
+	Our performance in Tournament 1 where there was only 1 instance of each player, was really good, and it can be clearly seen that G1,G2 and G4Forward player are the candidates for the top slot. However, we outperform all teams in tournament 2 where there are 2 instances of each player hence a lot more opportunities to fom seven letter words. We observed that this behaviour was consistent in all tournament results and in some test cases we ran ourselves. We attribute our relatively poor behaviour in tournaments with lesser number of players to the fact that we did not properly account for the number of players in our bidding strategy. However, we still remain competitive in cases where there are less number of players.
 	
 	\subsection{Performance in terms of No. of Seven Letters}
 	
 	\includegraphics[width=0.8\textwidth]{SevenCount}
 	
-	While seven letter words are not the actual parameter of success, they are a huge contributing factor. We found that a high seven letter word count usually converted into a higher score for a player. Once again team 1 and team 2 are the top teams in forming the seven letter word. While we beat team 2 beats us in the no of seven letter words formed we beat them in the overall score at the end of the tournament.(Team 1 Cumulative Score: 33272, Team 2 Cumulative Score: 30461). We explain the significance of this statistic in the next section.
+	While seven letter words are not the actual parameter of success, they are a huge contributing factor. We found that a high seven letter word count usually converted into a higher score for a player. Once again team 1 and team 2 are the top teams in forming the seven letter word. While we beat team 2 beats us in the number of seven letter words formed we beat them in the overall score at the end of the tournament.(Team 1 Cumulative Score: 33272, Team 2 Cumulative Score: 30461). We explain the significance of this statistic in the next section.
 	
 	\subsection{Avg Bid Per Letter/ A deeper look}
 	To further understand the results we look at avg amount paid by each player in the case when they form a seven letter word and in the case when they do not form a seven letter word. The source for both these tables were the first two tournaments. 
 	\begin{center}
 \includegraphics[width=0.8 \textwidth]{AVGBidSevenY}
 \end{center}
-The table above shows the avg amount paid per letter by each team, the no of seven letter words formed by them and their cumulative gain for all rounds where they do return a valid seven letter word.(It would have been interesting to see the actual bids, however we can say intutively that on an average the bid amounts by each player is proportional to the amount they paid for it). Clearly G2 pays the highest for forming seven letter words and makes the maximum seven letter words. However, in terms of pure numbers we over take them with a relatively high no of seven letters and lesser avg pay per letter. 
+The table above shows the avg amount paid per letter by each team, the number of seven letter words formed by them and their cumulative gain for all rounds where they do return a valid seven letter word.(It would have been interesting to see the actual bids, however we can say intutively that on an average the bid amounts by each player is proportional to the amount they paid for it). Clearly G2 pays the highest for forming seven letter words and makes the maximum seven letter words. However, in terms of pure numbers we over take them with a relatively high number of seven letters and lesser avg pay per letter. 
 	\begin{center}
 \includegraphics[width=0.6 \textwidth]{AVGBidSevenNN}
 \end{center}
-	Clearly the biggest contributing factor to the score is the 50 point bonus the player gets on returning a seven letter word. However, non-seven letter words also cumulatively addup to the score and produce a significant difference. In the above table we show the avg gain per round ((No of points gained- amount bid) per round) of each team when not forming a seven letter word. While we i.e. team 1 seem to do reasonably well. Team 4 seems to manage situations where seven letter word is not formed much better than us, this could be a contributing factor towards their success in the tournament. On the other hand team 2 seems to be the most heavily penalized in the non seven letter word formin scenario as it pays the most and gains the least. 
+	Clearly the biggest contributing factor to the score is the 50 point bonus the player gets on returning a seven letter word. However, non-seven letter words also cumulatively addup to the score and produce a significant difference. In the above table we show the avg gain per round ((number of points gained- amount bid) per round) of each team when not forming a seven letter word. While we i.e. team 1 seem to do reasonably well. Team 4 seems to manage situations where seven letter word is not formed much better than us, this could be a contributing factor towards their success in the tournament. On the other hand team 2 seems to be the most heavily penalized in the non seven letter word formin scenario as it pays the most and gains the least. 
 	\subsection{Head to Head Analysis}
 	There were two kinds of head to head tournaments played , the first being 1 vs 1 where there was 1 instance of 2 players, and the other being 5 v 5 where there were 5 instances of each player. 
 
 \subsubsection{1v1 tournaments}	
-	In the 1 v 1 tournament our performance was relatively bad which again we base on the fact that there were too few chances of making a seven letter word, and because of a little overbidding on our part we get penalized in such cases. In the 1v1 tournament we beat only player g3 and in a few instances do better than other players with a high no of hidden letters. We do not dig deep in 1v1 tournament results as there is a large variability in cases with high no of hidden letters( 5 or 6) and only 2 competing players. 
+	In the 1 v 1 tournament our performance was relatively bad which again we base on the fact that there were too few chances of making a seven letter word, and because of a little overbidding on our part we get penalized in such cases. In the 1v1 tournament we beat only player g3 and in a few instances do better than other players with a high number of hidden letters. We do not dig deep in 1v1 tournament results as there is a large variability in cases with high number of hidden letters( 5 or 6) and only 2 competing players. 
 	\subsubsection{5v5 tournaments}
 	In the 5v5 tournament we beat most players convincingly and only g2 and g4 give us a run for the money. For the sake of brevity we discuss our relative performance with them in the charts shown below.\\
 	\textbf{G1 vs G2}\\
@@ -282,7 +282,7 @@ The table above shows the avg amount paid per letter by each team, the no of sev
 \includegraphics[width=1 \textwidth]{5v5option3G1G2}
 \end{center}
 	\textbf{G1 vs G4 Forward}
-	The graph for G1 vs G4 is much more proportional to the amount of words formed. However an important feature in this graph and the earlier one is that both g2 and g4 seem to do better as the no of hidden letters increase. While we generally beat them when there are less hidden letters, this basically means that we are better than them at finding pathways to a seven letter word. However in higher no of hidden letter case, they probably bid higher and are able to grab letters before us.
+	The graph for G1 vs G4 is much more proportional to the amount of words formed. However an important feature in this graph and the earlier one is that both g2 and g4 seem to do better as the number of hidden letters increase. While we generally beat them when there are less hidden letters, this basically means that we are better than them at finding pathways to a seven letter word. However in higher number of hidden letter case, they probably bid higher and are able to grab letters before us.
 	\begin{center}
 \includegraphics[width=1 \textwidth]{5v5optionG1G4}
 \end{center}
@@ -301,7 +301,7 @@ In particular team 2 pays heavily for each letter in the all same player tournam
 	\subsection{Summarizing Tournament Analysis}
 		
 	Digging deeper into the tournament statistics we discovered that success in the tournament can basically be attributed to two factors:
-	--Insert Graphs
+
 	\begin{enumerate}
 	\item{} A relatively high bid per letter: This seems most likely as bidding values are most likely proportional to paid values and the teams which have paid higher for their letters have generally done well. Overbidding however in some cases seems to have adversely effected to an extent(team 2, and team 1 in 1v1 tournament)
 	\item{} A good letter evaluation strategy: Teams which have done well also seem to bid low for letters which do not form a seven letter word, and seem to be properly able to evaluate the worthiness of a letter to them(as they have a high seven letter count as well)
@@ -330,9 +330,9 @@ General strategies were discussed by the group as a whole, and the final experim
 
 Ben adapted the {\it a priori} code from his previous homework to be useable for this assignment, as well as writing the combinatorics code and the initial (extremely simple) loss-based bidder.
 
-Manuel wrote lots of bidding strategies and I'm totally asleep right now
+Manuel wrote lots of bidding strategies for both seven-letter and non seven-letter word situations.
 
-Nipun did the tournament analysis, made the initial player/probability calculation , subset checking for word formation and the initial percentile bidding strategy
+Nipun did the tournament analysis, and wrote the initial player/probability calculation, subset checking for word formation, and the initial percentile bidding strategy
 
 \section{Issues Encountered and Conclusions}
 
