@@ -242,7 +242,8 @@ We evaluated all of these approaches in mini-tournaments, against each other and
 
 
 \section{Tournament Results} % NIPUN
-	Our G1Player seems to do pretty well in almost all tournaments, ranking amongst the top teams on an average. We especially do well in tournaments with more opportunities to score seven letter words (i.e. more number of players). Overall we also seem to have form a high number of seven letter words. On the other hand relative to other tournaments our performance in tournaments with lesser number of players is not as good. This basically shows that given a good chance of forming seven letter words, we are generally the most successful amongst the given teams and do well in terms of the score.
+	Our G1Player seems to do pretty well in almost all tournaments, ranking amongst the top teams on an average. We do especially well in tournaments with more players, apparently because of the increased number of turns in each round. 
+On the other hand,  our performance in tournaments with lesser number of players is not as good. This basically shows that given a good chance to wait for the letters we want, we are generally the most successful amongst the given teams and do well in terms of the score, but we do less well in shorter time-span games.
 	
 	To give a high level view of our performance in relation to other players we look at the 1 player each tournament, and 2 instances of each player tournament. Since they have all the players these two give a good idea of the performance of a player with respect to others. 
 	
@@ -251,24 +252,24 @@ We evaluated all of these approaches in mini-tournaments, against each other and
 	\includegraphics[width=1\textwidth]{T1Results}
 	\includegraphics[width=1\textwidth]{T2Results}
 	
-	Our performance in Tournament 1 where there was only 1 instance of each player, was really good, and it can be clearly seen that G1,G2 and G4Forward player are the candidates for the top slot. However, we outperform all teams in tournament 2 where there are 2 instances of each player hence a lot more opportunities to fom seven letter words. We observed that this behaviour was consistent in all tournament results and in some test cases we ran ourselves. We attribute our relatively poor behaviour in tournaments with lesser number of players to the fact that we did not properly account for the number of players in our bidding strategy. However, we still remain competitive in cases where there are less number of players.
+	Our performance in Tournament 1, where there was only one instance of each player, was really good, and it can be clearly seen that the G1, G2 and G4Forward players are the candidates for the top slot. However, we outperform all teams in tournament 2 where there are 2 instances of each player hence a lot more opportunities to fom seven letter words. We observed that this behaviour was consistent in all tournament results and in some test cases we ran ourselves. We attribute our relatively poor behavior in tournaments with lesser number of players to the fact that we did not properly account for the number of players (and its impact on the number of rounds) in our bidding strategy. However, even in these cases, we still remain competitive.
 	
-	\subsection{Performance in terms of No. of Seven Letters}
+	\subsection{Performance in terms of Number of Seven Letter Words}
 	
 	\includegraphics[width=0.8\textwidth]{SevenCount}
 	
-	While seven letter words are not the actual parameter of success, they are a huge contributing factor. We found that a high seven letter word count usually converted into a higher score for a player. Once again team 1 and team 2 are the top teams in forming the seven letter word. While we beat team 2 beats us in the number of seven letter words formed we beat them in the overall score at the end of the tournament.(Team 1 Cumulative Score: 33272, Team 2 Cumulative Score: 30461). We explain the significance of this statistic in the next section.
+	While seven letter words are not the actual parameter of success, they are a huge contributing factor:  a high seven letter word count usually corresponds to a higher score for a player. Once again team 1 and team 2 are the top teams in forming seven letter words, but with an interesting difference: while our player beats Team 2 in the cumulative score for the tournament (33272 to 30461),  team 2 finishes ahead of us in the number of seven letter words formed. We explain the origin of this statistic in the next section.
 	
-	\subsection{Avg Bid Per Letter/ A deeper look}
-	To further understand the results we look at avg amount paid by each player in the case when they form a seven letter word and in the case when they do not form a seven letter word. The source for both these tables were the first two tournaments. 
+	\subsection{Average Bid Per Letter/ A deeper look}
+	To further understand the results we look at average amount paid by each player in the case when they form a seven letter word and in the case when they do not form a seven letter word. The source for both these tables were the first two tournaments. 
 	\begin{center}
 \includegraphics[width=0.8 \textwidth]{AVGBidSevenY}
 \end{center}
-The table above shows the avg amount paid per letter by each team, the number of seven letter words formed by them and their cumulative gain for all rounds where they do return a valid seven letter word.(It would have been interesting to see the actual bids, however we can say intutively that on an average the bid amounts by each player is proportional to the amount they paid for it). We seem to be the most efficient at getting seven letter words as our avg bid per letter is the least, wheras, G2 pays the highest for forming seven letter words and makes the maximum seven letter words. However, in terms of pure numbers we over take them with a relatively high number of seven letters and lesser avg pay per letter. 
+The table above shows the average amount paid per letter by each team, the number of seven letter words formed by them and their cumulative gain for all rounds where they do return a valid seven letter word. (It would have been interesting to see the actual bids, however we can say intutively that on an average the bid amounts by each player is proportional to the amount they paid for it). We seem to be the most efficient at getting seven letter words as our average bid per letter is the least, wheras, G2 pays the highest for forming seven letter words and makes the maximum seven letter words. However, in terms of pure numbers we over take them with a relatively high number of seven letters and lesser average paid per letter. 
 	\begin{center}
 \includegraphics[width=0.6 \textwidth]{AVGBidSevenNN}
 \end{center}
-	Clearly the biggest contributing factor to the score is the 50 point bonus the player gets on returning a seven letter word. However, non-seven letter words also cumulatively addup to the score and produce a significant difference. In the above table we show the avg gain per round ((number of points gained- amount bid) per round) of each team when not forming a seven letter word. While we i.e. team 1 seem to do reasonably well. Team 4 seems to manage situations where seven letter word is not formed much better than us, this could be a contributing factor towards their success in the tournament. On the other hand team 2 seems to be the most heavily penalized in the non seven letter word formin scenario as it pays the most and gains the least. 
+	Clearly the biggest contributing factor to the score is the 50 point bonus the player gets on returning a seven letter word. However, non-seven letter words also cumulatively addup to the score and produce a significant difference. In the above table we show the average gain per round ((number of points gained- amount bid) per round) of each team when not forming a seven letter word. While we i.e. team 1 seem to do reasonably well. Team 4 seems to manage situations where seven letter word is not formed much better than us, this could be a contributing factor towards their success in the tournament. On the other hand team 2 seems to be the most heavily penalized in the non seven letter word formin scenario as it pays the most and gains the least. 
 	\subsection{Head to Head Analysis}
 	There were two kinds of head to head tournaments played , the first being 1 vs 1 where there was 1 instance of 2 players, and the other being 5 v 5 where there were 5 instances of each player. 
 
@@ -298,7 +299,7 @@ However, in general most teams pay more per letter in comparison to other tourna
 \includegraphics[width=0.5 \textwidth]{ALLPlayer}
 \end{center}
 
-In the figure above we show differences between gen case avg bid per letter and avg bid per letter when competing against ourselves. In particular team 2 seems to have the highest difference for each letter in the all same player tournament, and although their avg bid per letter is high they still make comparitively less no of words.(i.e. team 2 in particular seems to harm itself the most resulting in a bad performance overall in the all player tournament)
+In the figure above we show differences between gen case average bid per letter and average bid per letter when competing against ourselves. In particular team 2 seems to have the highest difference for each letter in the all same player tournament, and although their average bid per letter is high they still make comparitively less no of words.(i.e. team 2 in particular seems to harm itself the most resulting in a bad performance overall in the all player tournament)
 	\subsection{Summarizing Tournament Analysis}
 		
 	Digging deeper into the tournament statistics we discovered that success in the tournament can basically be attributed to two factors:
