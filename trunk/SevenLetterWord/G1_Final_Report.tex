@@ -113,6 +113,7 @@ Obviously, we need some way to judge the relative ease of reaching each of the p
 As a first approximation, we can trivially calculate the probability of any specific letter being drawn from the letter bag on the current turn.  By taking the product of this probability for all remaining letters in a word, we can easily calculate an approximation of the probability of that word being reached.  This calculation has several disadvantages: most obviously, it ignores the changing denominator of the probability calculation as letters are drawn, as well as the changing numerator for repeated letters.  It also takes no account of the fact that other letters may be drawn between the ones we are interested in.  To balance the first disadvantage, it has the advantage of being very simple and fast to calculate for many words; for the second, we observe that the impact of this effect is roughly the same for all words, so we should still be able to use this value to compare different words, since both will be wrong in the same way.
 
 \subsubsection{Sequence-Counting Approach}
+\label{sec:sequenceCounting}
 
 The principal defect of the naive approach is that it fails to take account of the effects of drawing without replacement.  This can be addressed by making the calculations somewhat more complicated.
 % XXX genius prose there...
@@ -130,6 +131,8 @@ caveat--hidden letters given to other players.  This doesn't change the possible
 
 Converting this to a concrete probability would involve a lot more math, but would iron out the problem of accounting for opportunity cost.  (Though not the problem of competition.)
 
+We can precalculate these sequence counts for the starting position (an empty rack), and then update them each round for all words that include the letter that was bid on in the previous round.
+
 \section{Bidding Strategies}
 
 \subsection{When to Bid}
@@ -139,7 +142,7 @@ If no such word exists, we simply bid incrementally: we find the best-scoring wo
 
 \subsection{Gain-based strategies}
 
-Our initial approach to bidding (once we gave up on the ``bid 0 and make the best of it'' strategy) attempted to bid based on how much closer acquiring a particular letter would bring us to having a seven-letter word. 
+Our initial approach to bidding (once we gave up on the ``bid 0 and make the best of it'' strategy) attempted to bid based on how much closer acquiring a particular letter would bring us to having a seven-letter word.  
 
 Assuming that we can reach a seven-letter word after getting the current letter, our final score would be 50 plus the sum of the score of all the letters we use. According to the rules of the Vickrey auction, if we bid what we are willing to pay, we will not be paying more than this amount in the event we win the bid, but we might pay less. Combining these two facts, our idea was to bid an amount such that the total amount we bid after getting all seven letters is not greater than the value of the seven-letter word we will get. Let $c$ be the cumulative amount we have paid thus far, $s$ the score for the offered letter, and $n$ the number of letters we have, then we would bid:
 
@@ -149,7 +152,7 @@ This strategy is intuitively reasonable: if we succeed in every bid, we will hav
 
 \subsubsection{Word Count}
 
-Just allowing us to reach a seven-letter word does not mean that the current letter is necessarily a good acquisition. The amount of seven-letter words that can be formed after getting that letter might be ridiculously small, so we must have some way to determine not only if a letter is good for us, but more importantly how good it is. Our first approach used the number of reachable words after acquiring the letter, as compared to the total number of reachable letters before acquiring it. Obviously, the first number will be smaller than the second, and the fraction they form will give us an estimation of how good the letter is.
+Just allowing us to reach a seven-letter word does not mean that the current letter is necessarily a good acquisition. The amount of seven-letter words that can be formed after getting that letter might be ridiculously small, so we must have some way to determine not only if a letter is good for us, but more importantly how good it is. Our first approach used the number of reachable words after acquiring the letter, as compared to the total number of reachable words before acquiring it. Generally speaking, the first number will be smaller than the second, but the fraction they form will give us an estimation of how good the letter is.
 
 After calculating this fraction, we checked if it was greater than a given cutoff, obtained after several empirical tests, and if the value was greater than the cutoff, then we would go ahead and bid for the letter. For example, if the cutoff was 0.3, int the case we could reach 1000 seven-letter words with the letters we have, and 400 after we get the offered letter, we would bid for the letter. If we could only get 200 after getting the letter, then we would not bid. 
 
@@ -161,18 +164,16 @@ $$\frac{r}{t}>c$$
 
 The next step was to polish our strategy by using more significant information. The number of words reachable from the set of letters we have does not take into consideration the combined probability of those words being reached. It might be possible that many of them were reachable only by means of an infrequent letter, and this should affect our estimation of how good an offered letter is for us.
 
-By using the probability of each individual letter in the bag of letters, we can calculate the probability of a word being formed. These probabilities sum 1, if we consider all reachable words. The measure we will use then is the summed probability for all reachable seven-letter words after acquiring the offered letter, and we will compare this value to a cutoff, as before. This resulted in a more accurate estimation of how convenience bidding on a letter is.
+By using the probability of each individual letter in the bag of letters, we can calculate the probability of a word being formed. 
+The measure we will use then is the summed probability for all reachable seven-letter words after acquiring the offered letter, and we will compare this value to a cutoff, as before. This resulted in a more accurate estimation of how convenient bidding on a letter is.
+
+As an alternative approach, we used these summed probabilities to rank all of the letters remaining in the bag, with an eye toward selecting only letters from the upper end of this ranking: for letters with very high ranks, we would bid large amounts; for those with medium ranks, small amounts; for those with low ranks, nothing.  Unfortunately, once we implemented this approach we realized a major drawback: we might pass over medium-ranked letters, then choose a high-ranked letter that required one or more of those medium-ranked letters to actually form a seven-letter word.
 
 \subsubsection{Summed Word Draw Possibilities}
 
-The immediate problem here is that the possibilities count will virtually always go down when you acquire a new letter.  The best letters will reduce the count by only a small amount; the worst may reduce it to zero.
+Our next alternative used the letter-sequence-counting approach outlined in section \ref{sec:sequenceCounting}: given the number of sequence possibilities that would allow us to reach a seven-letter word from our current position, how many of them involve at least one copy of the current letter?  Assuming the cached letter-sequence-counts are kept up to date as outlined above, this is trivial to implement: we simply find the set of seven-letter words that include our current letters plus the letter being bid on, sum their sequence counts, and compare that quantity to the sum of the sequence-counts for seven-letter words reachable from our current rack without the added letter.
 
-Easy to see: how many of our routes to 7 letters go through this letter?
-
-Cutoff-based bidding, still based on the tile value.
-
-Cutoff-based bidding, based on Manuel's  % kind of optimistic ;-)
-estimate of how much things were worth. 
+From this, we can again resort to a heuristic cutoff value to decide which letters we do and do not wish to bid on.  For the bidding strategy based on this calculation, we used an initial cutoff of $0.4$ (based purely on our observations of the range of values we were seeing during testing): any letter which allowed us to retain more than 40\% of our possible routes to a 7-letter word was worth bidding on.  To guard against excessive conservatism, we  dropped this cutoff to  $0$ (that is, any non-zero retained fraction) any time the number of auctions remaining in this round dropped below twice the number of letters we still needed to acquire.
 
 \subsubsection{Summary}
 
