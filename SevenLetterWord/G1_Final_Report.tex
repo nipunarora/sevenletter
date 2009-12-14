@@ -203,7 +203,7 @@ We considered a number of tactics for adjusting our bidding to avoid falling beh
 
 \begin{enumerate}
 \item{} periodically boosting our bid by some fixed amount or factor, to avoid consistently being outbid (and confound any opposing-team predictors)
-\item{} keeping track of the number of letters acquired and the number of bidding rounds, and boosting our bid if we are behind the ``average'' rate of letter acquisition (that is, if more than $1/7$ of letters have been auctioned off, but we have only 1 or 0 letters on our rack). % shouldn't it be 1/no_players ?
+\item{} keeping track of the number of letters acquired and the number of bidding rounds, and boosting our bid if we are behind the ``average'' rate of letter acquisition (that is, if more than $1/2$ of letters have been auctioned off, but we have acquired fewer than half of the letters we need, then our bids would increase)
 \item monitoring our success rate on recent bids, and boosting the bid by a fixed factor if we have been losing bidders some number of times in a row
 \item extending the previous strategy by maintaining (or continuing to escalate) the boost factor until we succeed on a bid.
 \item keeping track of the bidding statistics (average and standard deviation) to ensure that our bid is not too far from the average bid value, preventing under-bidding and over-bidding
