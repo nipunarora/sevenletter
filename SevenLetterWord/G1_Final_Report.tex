@@ -284,7 +284,9 @@ Special cases - One to one tournaments, all one player tournaments (do we want t
 
 \section{Issues Encountered/Observations/Lessons Learned}
 
-Draw possibilities code had a bug early on which may have compromised some comparisons we made, but we are confident we ended up with a good solution.
+The great amount and complexity of data structures needed to obtain a satisfactory solution to our expectations for this project made it hard to keep track of all the different changes, bugs, and bottlenecks. Draw possibilities code had a bug early on which may have compromised some comparisons we made, but we are confident we ended up with a good solution.
+
+Moreover, we soon learned that one strategy alone is not good enough, and taking other players' strategies into consideration while designing our own strategy is necessary. A player performs well while his strategy is adequate in relation to his opponents.
 
 \section{Possible Extensions}
 
@@ -292,6 +294,7 @@ Well, it might be interesting to have more explicit probability calculations for
 
 You can't get an incredibly well-defined probability of getting what you need, but you can set an upper bound on it, which is all you need to see if the increment is worth more in expectation than trying for the 50-point bonus.  Very small enhancement, though.
 
+One thing we would have liked to do (and we did, to a certain extent) was to keep track of other players, trying to predict their next move by studying their previous behavior, and having a representation as accurate as possible of their status. It would have given us better control over the game flow.
 
 
 \section{Acknowledgements}
