@@ -147,15 +147,17 @@ For a given configuration of the letter-bag and our own rack, we can calculate t
 % good thing we're not using Google, after all...
 $$\prod_{i=1}^{26}{b_{i}\choose w_{i} - r_{i}}*\left( \sum_{i}w_{i} - r_{i}\right)!$$
 
-Note that the factorial at the end for permutation is useless, since we're not actually doing the rest of the math, but it's useless at a constant rate for all the words that matter (seven-letter words will all have draw sequences of the same length, just differing likelihoods).
+The probability of our seeing a specific collection of letters over the course of the remaining letter auctions could in principle be calculated beginning from this expression: we attempted this calculation, but realized while doing so that once again, the actual probability was less important than the relative weights of the different words.  Moreover, the actual probability of a set of letters appearing is in any case an upper bound on the likelihood of our forming that word, since we might be outbid for any or all of the letters in question.  Accordingly, we made the sequence-count, rather than an actual probability, the basis for all of our later probability-based calculations.  (Note that this renders the factorial at the end of the above expression useless: since all reachable seven-letter words will always have draw sequences involving the same number of letters, this term will effectively be constant.)
 
-IF sum of $ \sum_{i}w_{i} - r_{i} > 7 - \sum_{i} r_{i}$ then $p = 0$ regardless (but this should already be excluded by the data-mining query).
+The failure to finish this probability calculation does have one important consequence: since we omit the portion of the probability calculation that depends on the total number of draws from the letter-bag, the count for a given word remains unchanged until and unless one of the letters in it is drawn from the bag.  This allows us to avoid expensive recalculations: if we precalculate the sequence counts for each word for the starting position (an empty rack and a full letter-bag), only a relatively small number of words (those including the letter that was bid on during the previous turn) must be recalculated each turn.
 
-caveat--hidden letters given to other players.  This doesn't change the possible draws, but it does change the number of rounds we have to try to get one of those draw sequences to happen.
+There are two important caveats to note, however:
+\begin{enumerate}
+\item there is no explicit accounting in this calculation for the hidden letters that may already be in other players' racks: since we have no way of knowing (and we make no attempt to guess) what these letters are, their only impact on the game is to reduce the total number of draws from the bag.
+\item however, as noted previously, we take no account of the number of letters remaining to be drawn.  Since the probability of a given collection of letters being drawn is clearly higher when there are many turns left in the round than when there are few turns remaining (all other things being equal), this is a serious defect.  Considering the complication involved in the explicit probability calculation, however, we decided to leave this problem aside for later consideration.
+\end{enumerate}
 
-Converting this to a concrete probability would involve a lot more math, but would iron out the problem of accounting for opportunity cost.  (Though not the problem of competition.)
 
-We can precalculate these sequence counts for the starting position (an empty rack), and then update them each round for all words that include the letter that was bid on in the previous round.
 
 \section{Bidding Strategies}
 
@@ -209,19 +211,21 @@ The obvious alternative to gain-based bidding is loss-based bidding: each time a
 
 \subsubsection{Basic Calculation}
 
-This is done by checking, for every reachable seven-letter word, how its probability is affected if we remove the offered letter from the bag. These differences are added, and this result divided by the total sum of probabilities for reachable word gives us a measure of how our chances to get to a seven letter-word would be reduced if we let go this letter. Let $p_i$ be the current probability of word i, $n_i$ the new probability if we remove the offered letter from the bag, and $R$ the set of all currently reachable seven-letter words, then we will bid:
+This is done by checking, for every reachable seven-letter word, how the probability of reaching it is affected if we remove the offered letter from the bag. These differences are added, and this result divided by the total sum of probabilities for reachable word to give us a measure of how our chances to get to a seven letter-word would be reduced if we let go this letter. Let $p_i$ be the current probability of word i, $n_i$ the new probability if we remove the offered letter from the bag, and $R$ the set of all currently reachable seven-letter words, then we will bid:
 
 $$\frac{\sum_{i \in R}p_i - n_i}{\sum_{i \in R}p_i} * 50$$
 
 \subsubsection{Opportunity Cost}
 
-This strategy brings us back face to face with the problem we declined to solve earlier: how does the probability of a given sequence of letters being reached change with the number of remaining auctions? We had a global history data to help us emphasize how necessary a letter was to us, and that was the remaining number of auctions. As the round draws closer to its end, we want to get our seven letter words before the remaining auctions are so few that we end up having to take letters we do not want. 
+This strategy brings us back face to face with the problem we declined to solve earlier: how does the probability of a given sequence of letters being reached change with the number of remaining auctions?  Clearly, we lose some probability of reaching a seven letter word with the passage of each turn, regardless of the letter seen, but we do not yet have a good way of calculating that loss.  From the beginning, our player tracked the number of total auctions in the round, and the number that had already taken place, so we would be able to alter our bidding based on the time remaining.
+As the round draws closer to its end, we want to get our seven letter words before the remaining auctions are so few that we end up having to take letters we do not want, but how much of our opportunity to reach a seven-letter word do we lose each time a round goes by without our collecting a letter? 
 
-Initially we were using $\frac{auctions\_left}{letters\_needed}$ . Our solution was sort of unsatisfactory, but our efforts to improve on it largely failed, though we did make use of the number of auctions left to avoid falling behind and getting randomly assigned letters. We multiplied our bid by $1+\frac{1}{auctions\_left}$, so we would bid higher towards the end, guaranteeing that we will complete our seven letters relatively ahead of time.
+Our earlier players tracked the value of $\frac{auctions\_left}{letters\_needed}$, and simply escalated the bid (or increased the number of letters we were willing to bid on) if this value became too low, but this was a very crude and unsatisfying heuristic.  The initial loss-based bidding strategy instead multiplied all of its bids by $1+\frac{1}{auctions\_left}$, so we would bid higher as the round progressed (assuming any letters worth bidding on were drawn) .  This was moderately effective, if 
+still unsatisfactory.  Unfortunately, our subsequent efforts to improve on this heuristic were unsuccessful--our final player still uses this multiplier. 
 
 \subsubsection{Market Rates}
 
-In principle, if we are able to form a perfect estimate of the opportunity cost of passing on one auction, as well as the penalty for failing to acquire each letter, we should be able to perfectly calculate the value (in expectation) of each letter, and our player should perform well, at least on average.  However, since our estimates are imperfect, and we may be in competition with other players, we also attempt to keep track of how our bids compare to the ``market rate'' for each letter: if we are losing out on our bids consistently, we may be systematically underestimating the value of letters.
+In principle, if we are able to form a perfect estimate of the opportunity cost of passing on one auction, as well as the penalty for failing to acquire each letter, we should be able to perfectly calculate the value (in expectation) of each letter, and our player should perform well, at least on average.  However, since our estimates are (as discussed in the previous section) imperfect, and we may be in competition with other players, we also attempt to keep track of how our bids compare to the ``market rate'' for each letter: if we are losing out on our bids consistently, we may be systematically underestimating the value of letters.
 
 We considered a number of tactics for adjusting our bidding to avoid falling behind on letter acquisition:
 
