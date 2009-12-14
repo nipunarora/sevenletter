@@ -185,9 +185,9 @@ The obvious alternative to gain-based bidding is loss-based bidding: each time a
 
 \subsubsection{Basic Calculation}
 
-This is done by checking, for every reachable seven-letter word, how its probability is affected if we remove the offered letter from the bag. These differences are added, and this result divided by the total sum of probabilities for reachable word gives us a measure of how our chances to get to a seven letter-word would be reduced if we let go this letter. Let $p_i$ be the current probability of word i, $np_i$ the new probability if we remove the offered letter from the bag, and $R$ the set of all currently reachable seven-letter words, then we will bid:
+This is done by checking, for every reachable seven-letter word, how its probability is affected if we remove the offered letter from the bag. These differences are added, and this result divided by the total sum of probabilities for reachable word gives us a measure of how our chances to get to a seven letter-word would be reduced if we let go this letter. Let $p_i$ be the current probability of word i, $n_i$ the new probability if we remove the offered letter from the bag, and $R$ the set of all currently reachable seven-letter words, then we will bid:
 
-$$\frac{\sum_{i \in R}p_i - np_i}{\sum_{i \in R}p_i} * 50$$
+$$\frac{\sum_{i \in R}p_i - n_i}{\sum_{i \in R}p_i} * 50$$
 
 \subsubsection{Opportunity Cost}
 
@@ -209,7 +209,7 @@ We considered a number of tactics for adjusting our bidding to avoid falling beh
 \item keeping track of the bidding statistics (average and standard deviation) to ensure that our bid is not too far from the average bid value, preventing under-bidding and over-bidding
 \end{enumerate}
 
-We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, so a relatively conservative modification to our bidding would suffice.  Our final player tracks the success or failure of each non-zero bid, and boosts its bids by a factor of 2 if the last three or more non-zero bids have been unsuccessful. %again, maybe we should have used no_players instead of 3
+We evaluated all of these approaches in mini-tournaments, against each other and the most recent version of players from the other groups: our final conclusion was that the penalty for underbidding was not crippling us in any case, so a relatively conservative modification to our bidding would suffice.  Our final player tracks the success or failure of each non-zero bid, and boosts its bids by a factor of 2 if the last three or more non-zero bids have been unsuccessful. These values were empirically decided. The multiplier had to make our bids more aggressive without making us overbid extensively, for which we assessed 2 was the best value after many runs agains the other players. The number of turns to boost our bid was decided upon after discussing the configuration of the tournaments that would be run, since it proved to give better results in terms of aggressiveness when playing against the other teams. %again, maybe we should have used no_players instead of 3
 
 
 \section{Tournament Results} % NIPUN
