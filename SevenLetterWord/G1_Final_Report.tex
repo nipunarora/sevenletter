@@ -79,6 +79,17 @@ The basic concept our player architecture revolves around is that the more infor
 \item probability of reaching a word, based on the required letters for it
 \end{enumerate}
 
+\subsubsection{Operations with Words}
+
+While studying all the information we had we needed to perform many operations with words, abstracting the concept of a word and the operations that it supports. We created a Word class that allowed us to:
+
+\begin{enumerate}
+\item access score, length, and letter distribution for a given word
+\item check if a word can still be formed with the letters we have
+\item find out which letters allow us to go from one word to another
+\item calculate the draw probability for a word based on the letters left in the bag and the ones we have
+\end{enumerate}
+
 \subsection{A Priori Algorithm} % BEN
 
 As our primary data structure, we chose a data-mining approach using the {\it a priori} algorithm originated by Rakesh Agrawal and Ramakrishnan Srikant (R. Agrawal and R. Srikant.  ``Fast Algorithms for Mining Assocation Rules.''  {\it Proceedings of the 20th VLDB Conference}.  Santiago, Chile, 1994.)  The basic properties of association rules seemed to map well onto the word-building problem space: just as the set of transactions that supports the association of a given pair of items is the intersection of the sets of transactions that include each of them individually,
