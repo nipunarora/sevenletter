@@ -110,7 +110,7 @@ Obviously, we need some way to judge the relative ease of reaching each of the p
 
 \subsubsection{Naive Sequence Probability Approach}
 
-As a first approximation, we can trivially calculate the probability of any specific letter being drawn from the letter bag on the current turn.  By taking the product of this probability for all remaining letters in a word, we can easily calculate an approximation of the probability of that word being reached.  This calculation has several disadvantages: most obviously, it ignores the changing denominator of the probability calculation as letters are drawn, as well as the changing numerator for repeated letters.  It also takes no account of the fact that other letters may be drawn between the ones we are interested in.  To balance the first disadvantage, it has the advantage of being very simple and fast to calculate for many words; for the second, we observe that the impact of this effect is roughly the same for all words, so we should still be able use this value to compare different words, since both will be wrong in the same way.
+As a first approximation, we can trivially calculate the probability of any specific letter being drawn from the letter bag on the current turn.  By taking the product of this probability for all remaining letters in a word, we can easily calculate an approximation of the probability of that word being reached.  This calculation has several disadvantages: most obviously, it ignores the changing denominator of the probability calculation as letters are drawn, as well as the changing numerator for repeated letters.  It also takes no account of the fact that other letters may be drawn between the ones we are interested in.  To balance the first disadvantage, it has the advantage of being very simple and fast to calculate for many words; for the second, we observe that the impact of this effect is roughly the same for all words, so we should still be able to use this value to compare different words, since both will be wrong in the same way.
 
 \subsubsection{Sequence-Counting Approach}
 
@@ -159,9 +159,9 @@ $$\frac{r}{t}>c$$
 
 \subsubsection{Summed Word Probabilities}
 
-And ranked.
+The next step was to polish our strategy by using more significant information. The number of words reachable from the set of letters we have does not take into consideration the combined probability of those words being reached. It might be possible that many of them were reachable only by means of an infrequent letter, and this should affect our estimation of how good an offered letter is for us.
 
-With replacement.
+By using the probability of each individual letter in the bag of letters, we can calculate the probability of a word being formed. These probabilities sum 1, if we consider all reachable words. The measure we will use then is the summed probability for all reachable seven-letter words after acquiring the offered letter, and we will compare this value to a cutoff, as before. This resulted in a more accurate estimation of how convenience bidding on a letter is.
 
 \subsubsection{Summed Word Draw Possibilities}
 
