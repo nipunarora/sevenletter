@@ -80,13 +80,26 @@ The basic concept our player architecture revolves around is that the more infor
 \end{enumerate}
 
 \subsection{A Priori Algorithm} % BEN
-\subsubsection{As originally designed}
 
-Cite Agrawal '94.  Note originally implemented for COMS E6111.
+As our primary data structure, we chose a data-mining approach using the {\it a priori} algorithm originated by Rakesh Agrawal and Ramakrishnan Srikant (R. Agrawal and R. Srikant.  ``Fast Algorithms for Mining Assocation Rules.''  {\it Proceedings of the 20th VLDB Conference}.  Santiago, Chile, 1994.)  The basic properties of association rules seemed to map well onto the word-building problem space: just as the set of transactions that supports the association of a given pair of items is the intersection of the sets of transactions that include each of them individually,
+ the set of words that include any two distinct letters is the intersection of the sets of words that include each of them individually.
+
+\subsubsection{Original Implementation}
+
+Our base implementation was written by Ben Warfield and Ashish Tomar for COMS E6111 (Professor Gravano) in Spring semester of 2009.  It was built to handle a potentially very large number of items (on the order of thousands), grouped in a moderately large set of transactions (less than 18,000 total), and included a number of performance optimizations specific to those parameters, most of which do not apply to the situation where 26 items (the letters of the alphabet) are grouped in 54,000 transactions (the words in the minimized dictionary list).  The basic architecture, however, is equally applicable to both cases: each {\tt ItemSet} object contains a sorted list of transaction IDs (indexes into the word list, in the adapted case), allowing the intersection of two transaction sets to be calculated based on a single parallel pass through the transaction lists of the two {\tt ItemSet} objects.
+
+
 
 \subsubsection{Modifications for Word Context}
 
-Duplicate letters.  No, I'm not going to explain how I initially screwed it up, just how I eventually fixed it.
+As mentioned above, the {\it a priori} data structure required several minor modifications before it could be used with the dictionary for this project.  More importantly, however, the algorithm itself has one major incompatibility with the goals of this project: it treats all transactions as sets, ignoring duplication.  Since the set of words containing the letter-set ``Y Y'' is markedly different from the set containing merely ``Y'', this must obviously be corrected.  In an attempt at avoiding jargon collisions, the following discussion will refer to the modified (multiset) item-sets used by the modified algorithm as ``letter-sets,'' and their transaction-lists as ``word-lists.''  
+
+In each round of  the {\it a priori} algorithm, we would normally build new item-sets by intersecting pairs of item-sets from the previous round 
+that differ only in their final item (sorted canonically)--so if we have item-sets ``A B'' and ``A C'', we can intersect them to form a new set ``A B C,''  which has as its transaction-list the intersection of the transaction-lists from ``A B'' and ``A C.''  Thus far, the algorithm translates perfectly to the letter-set/word-list situation: letter-sets ``A B'' and ``A C'' can be used to form ``A B C,'' whose word-list should be the intersection of the word-lists of the two parents.  Unfortunately, the original algorithm (since it ignores duplication) explicitly avoids building a new item-set based on two identical item-sets from the previous round:
+if we attempt use the unmodified algorithm on letter-sets ``A B'' and ``A B'', we will obtain a letter-set labeled ``A B B'' whose word-list actually contains all of the words from ``A B'' (since the intersection of a set with itself is the original set)--a dramatically incorrect result.
+
+The solution we chose for this problem is a simple special-case: each time we wish to intersect an item-set with itself, we first determine the letter of interest (always the last letter in the item-list) and the number of times it repeats in the current item-list, then
+retrieve the actual words represented by the item-set's transaction IDs, and count the number of occurrences of the duplicated letter in each word.  Words containing strictly more copies of the letter of interest than are in the current item-list are retained for the ``intersected'' item-set, while others are dropped.  A more efficient implementation would cache this information (presumably using the {\tt Word} objects already required by the player), but since the entire execution time of the modified algorithm on our wordlist is under 10 seconds, this was not judged worth the effort.
 
 \subsection{Unreachable Words}
 
