@@ -299,11 +299,6 @@ The table above shows the avg amount paid per letter by each team, the no of sev
 	
 Special cases - One to one tournaments, all one player tournaments (do we want to speculate about the curious case of player 2 ) :P
 
-\section{Issues Encountered/Conclusions}
-
-The great amount and complexity of data structures needed to obtain a satisfactory solution to our expectations for this project made it hard to keep track of all the different changes, bugs, and bottlenecks. Draw possibilities code had a bug early on which may have compromised some comparisons we made, but we are confident we ended up with a good solution.
-
-Moreover, we soon learned that one strategy alone is not good enough, and taking other players' strategies into consideration while designing our own strategy is necessary. A player performs well while his strategy is adequate in relation to his opponents.
 
 \section{Possible Extensions}
 
@@ -326,8 +321,16 @@ General strategies were discussed by the group as a whole, and the final experim
 
 Ben adapted the {\it a priori} code from his previous homework to be useable for this assignment, as well as writing the combinatorics code and the initial (extremely simple) loss-based bidder.
 
-Manuel wrote lots of bidding strategies for both seven-letter and non seven-letter word situations.
+Manuel wrote lots of bidding strategies and I'm totally asleep right now
 
 Nipun wrote the initial player and stuff, ditto on the being sleepy.
+
+\section{Issues Encountered and Conclusions}
+
+The great amount and complexity of data structures needed to obtain a satisfactory solution to our expectations for this project made it hard to keep track of all the different changes, bugs, and bottlenecks. The draw-sequences code (section \ref{sec:sequenceCounting}) had a bug early on which may have compromised some of the comparisons we made, which we did not successfully diagnose for some time.  We are confident we ended up with a good solution, but the path we took to it was definitely not always smooth.
+
+Moreover, we soon learned that one strategy alone (at least, of the strategies we were able to develop) is not good enough, and taking other players' strategies into consideration while designing our own strategy is necessary. A player performs well while its strategy is adequate in relation to its opponents and the type of game: strategies that appeared promising in large-scale matches with few hidden letters performed extremely poorly in matches with fewer bidding turns, and inversely.
+
+In the end, when all of the different strategies from different players and the implications of the Vickrey auction are taken into account, the fundamental question asked by this project is ``what is the value of a letter?''  If it were still September, this question could provoke either an interesting philosophical debate or an extended dive into the the twistier weeds of probability theory.  At this point in the semester, however, we are happy to have found a reasonably successful heuristic calculation to solve this final problem.
 
 \end{document}
