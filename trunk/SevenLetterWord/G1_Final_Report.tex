@@ -139,13 +139,23 @@ If no such word exists, we simply bid incrementally: we find the best-scoring wo
 
 \subsection{Gain-based strategies}
 
-Our initial approach to bidding (once we gave up on the ``bid 0 and make the best of it'' strategy) attempted to bid based on how much closer acquiring a particular letter would bring us to having a seven-letter word.  
+Our initial approach to bidding (once we gave up on the ``bid 0 and make the best of it'' strategy) attempted to bid based on how much closer acquiring a particular letter would bring us to having a seven-letter word. 
 
-This strategy is intuitively reasonable: if we succeed in every bid, we will have paid a cost no higher than the benefit (50 points) that we expect from forming a seven-letter word.
+Assuming that we can reach a seven-letter word after getting the current letter, our final score would be 50 plus the sum of the score of all the letters we use. According to the rules of the Vickrey auction, if we bid what we are willing to pay, we will not be paying more than this amount in the event we win the bid, but we might pay less. Combining these two facts, our idea was to bid an amount such that the total amount we bid after getting all seven letters is not greater than the value of the seven-letter word we will get. Let $c$ be the cumulative amount we have paid thus far, $s$ the score for the offered letter, and $n$ the number of letters we have, then we would bid:
+
+$$\frac{50+s-c}{7-n}$$
+
+This strategy is intuitively reasonable: if we succeed in every bid, we will have paid a cost no higher than the benefit (50 points + letter scores) that we expect from forming a seven-letter word.
 
 \subsubsection{Word Count}
 
-Which we didn't actually implement, but is obvious to talk about.
+Just allowing us to reach a seven-letter word does not mean that the current letter is necessarily a good acquisition. The amount of seven-letter words that can be formed after getting that letter might be ridiculously small, so we must have some way to determine not only if a letter is good for us, but more importantly how good it is. Our first approach used the number of reachable words after acquiring the letter, as compared to the total number of reachable letters before acquiring it. Obviously, the first number will be smaller than the second, and the fraction they form will give us an estimation of how good the letter is.
+
+After calculating this fraction, we checked if it was greater than a given cutoff, obtained after several empirical tests, and if the value was greater than the cutoff, then we would go ahead and bid for the letter. For example, if the cutoff was 0.3, int the case we could reach 1000 seven-letter words with the letters we have, and 400 after we get the offered letter, we would bid for the letter. If we could only get 200 after getting the letter, then we would not bid. 
+
+If $t$ is the number of currently reachable seven-letter words, $r$ is the number of reachable words after getting the letter, and $c$ is the cutoff, we would only bid for the letter if
+
+$$\frac{r}{t}>c$$
 
 \subsubsection{Summed Word Probabilities}
 
