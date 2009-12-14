@@ -215,7 +215,23 @@ This strategy considered the recent history in the game. We also had a global hi
 
 
 \section{Tournament Results} % NIPUN
-	Our G1Player seems to do pretty well in almost all tournaments, ranking amongst the top 2 teams on an average. We especially do well in tournaments with more opportunities to score seven letter words (i.e. more no of players). Overall we also seem to have formed the highest number of seven letter words out of all teams. On the other hand relative to other tournaments our performance in tournaments with lesser no of players is not as good. This basically clearly shows that given a good chance of forming seven letter words, we are generally the most successful amongst the given teams and do well in terms of the score. --Insert tables and graphs to illustrate above stuff
+	Our G1Player seems to do pretty well in almost all tournaments, ranking amongst the top teams on an average. We especially do well in tournaments with more opportunities to score seven letter words (i.e. more no of players). Overall we also seem to have form a high no of seven letter words. On the other hand relative to other tournaments our performance in tournaments with lesser no of players is not as good. This basically clearly shows that given a good chance of forming seven letter words, we are generally the most successful amongst the given teams and do well in terms of the score.
+	
+	To give a high level view of our performance in relation to other players we look at the 1 player each tournament, and 2 instances of each player tournament. Since they have all the players these two give a good idea of the performance of a player with respect to others. 
+	
+	\subsection{Performance in terms of Score}
+	
+	\includegraphics[width=1\textwidth]{T1Results}
+	\includegraphics[width=1\textwidth]{T2Results}
+	
+	While our performance in Tournament 1 where there was only 1 instance of each player, was really good, and it can be clearly seen that G1,G2 and G4Forward player are the candidates for the top slot. We outperform all teams in tournament 2 where there are 2 instances of each player hence a lot more opportunities to fom seven letter words. We observed that this behaviour was consistent in all tournament results and in some test cases we ran ourselves. We attribute our relatively poor behaviour in tournaments with lesser no of players to the fact that we did not properly account for the no of players in our bidding strategy. However, we still remain competitive in cases where there are less no of players.
+	
+	\subsection{Performance in terms of No. of Seven Letters}
+	
+	\includegraphics[width=0.8\textwidth]{SevenCount}
+	
+	While seven letter words are not the actual parameter of success, they are a huge contributing factor. We found that a high seven letter word count usually converted into a higher score for a player. Once again team 1 and team 2 are the top teams in forming the seven letter word. While we beat team 2 beats us in the no of seven letter words formed we beat them in the overall score at the end of the tournament.(Team 1 Cumulative Score: 33272, Team 2 Cumulative Score: 30461). We explain the significance of this statistic in the next section.
+	
 	
 	Digging deeper into the tournament statistics we discovered that our success can basically be attributed to two factors:
 	--Insert Graphs
@@ -225,6 +241,8 @@ This strategy considered the recent history in the game. We also had a global hi
 \end{enumerate}
 	
 	We also found that despite the fact that we are penalized heavily when we do not make seven letter words, this does not end up crippling our player as we more than make up for it with a high strike rate of forming seven letter words and a relatively high score gain when we form seven letter words.-- Illustrate with graphs
+	
+	As suspected our performance is relativerly poor in one to one tournaments with one instance of each player. However, we do really well in the 5 instance version of a head to head tournament beating all other players in the tournament (in terms of overall score) by a fair margin :). We attribute our faliure in the 1v1 tournament to the fact that we did not properly account for low no of players and consequently low chances of forming seven letter words. This has again been highlighted in earlier graphs where we show that we are heavily penalized in cases where we do not form a seven letter word. In tournaments where the chances of forming a seven letter words are relatively less this effect gets compounded. However, it should still be noted that we are competitive even in those cases (i.e. trail by about 10%).
 	
 Special cases - One to one tournaments, all one player tournaments (do we want to speculate about the curious case of player 2 ) :P
 
